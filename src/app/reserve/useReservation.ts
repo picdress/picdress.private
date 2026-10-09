@@ -56,6 +56,8 @@ export function useReservation() {
 }
 
 export function formatPhone(v: string) {
+  // 해외 번호(+로 시작)는 숫자·띄어쓰기만 남기고 그대로
+  if (v.trim().startsWith("+")) return "+" + v.replace(/[^\d ]/g, "").replace(/^\s+/, "").slice(0, 20);
   const d = v.replace(/\D/g, "").slice(0, 11);
   if (d.length < 4) return d;
   if (d.length < 8) return `${d.slice(0, 3)}-${d.slice(3)}`;
@@ -63,11 +65,9 @@ export function formatPhone(v: string) {
   return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 }
 
-export function shortDate(date: string) {
-  const [, m, d] = date.split("-").map(Number);
-  return `${m}/${d}`;
-}
-
-export function won(n: number) {
-  return `${n.toLocaleString("ko-KR")}원`;
+/** 서버로 보낼 번호: 한국 번호는 숫자만, 해외 번호는 +숫자 */
+export function phoneForServer(v: string) {
+  const t = v.trim();
+  const d = t.replace(/\D/g, "");
+  return t.startsWith("+") ? `+${d}` : d;
 }

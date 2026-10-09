@@ -4,13 +4,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
+import { useI18n } from "@/i18n/client";
+import { dayLabel, fmt, monthLabel } from "@/i18n/format";
 import { useReservation } from "../useReservation";
 import styles from "../reserve.module.css";
 
 type Slot = { time: string; remaining: number; closed: boolean };
 type Overview = { openStart: string; openEnd: string; openDates: string[]; dates: Record<string, number> };
-
-const WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 function addDays(date: string, n: number) {
   const d = new Date(`${date}T00:00:00Z`);
@@ -24,6 +24,7 @@ function weekday(date: string) {
 // 02_예약_날짜선택 + 02_예약_시간선택
 export default function SchedulePage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { r, update, ready } = useReservation();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [date, setDate] = useState<string>();
@@ -46,7 +47,7 @@ export default function SchedulePage() {
     fetch("/api/availability")
       .then((res) => res.json())
       .then(setOverview)
-      .catch(() => setError("일정을 불러오지 못했어요. 새로고침해 주세요."));
+      .catch(() => setError(t.schedule.loadError));
   }, []);
 
   const loadSlots = useCallback(async (d: string) => {
@@ -55,9 +56,9 @@ export default function SchedulePage() {
       const data = await res.json();
       setSlots(data.slots ?? []);
     } catch {
-      setError("시간 정보를 불러오지 못했어요.");
+      setError(t.schedule.loadError);
     }
-  }, []);
+  }, [t]);
 
   // 날짜를 고르면 시간표 불러오고, 화면에 있는 동안 15초마다 남은 자리 새로고침
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function SchedulePage() {
     return rows;
   }, [overview]);
 
-  const monthLabel = overview ? `${overview.openStart.slice(0, 4)}. ${Number(overview.openStart.slice(5, 7))}.` : "";
+  const month = overview ? monthLabel(t, overview.openStart, locale) : "";
 
   function pickDate(d: string) {
     setDate(d);
@@ -103,11 +104,11 @@ export default function SchedulePage() {
       <Header back />
       <div className={btn.page}>
         <section className={styles.schedule} data-empty={!date}>
-          <h1 className={`title ${styles.blockTitle}`}>날짜 선택</h1>
+          <h1 className={`title ${styles.blockTitle}`}>{t.schedule.dateTitle}</h1>
           <div className={styles.calendar}>
-            <p className={`title ${styles.month}`}>{monthLabel}</p>
-            <div className={styles.week} role="grid" aria-label="날짜 선택">
-              {WEEK.map((w) => (
+            <p className={`title ${styles.month}`}>{month}</p>
+            <div className={styles.week} role="grid" aria-label={t.schedule.dateTitle}>
+              {t.schedule.weekdays.map((w) => (
                 <div key={w} className={styles.weekday} role="columnheader">
                   {w}
                 </div>
@@ -123,7 +124,7 @@ export default function SchedulePage() {
                     className={styles.day}
                     disabled={disabled}
                     aria-pressed={date === d}
-                    aria-label={`${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일${disabled ? " 예약 불가" : ""}`}
+                    aria-label={`${dayLabel(t, d, locale)}${disabled ? ` (${t.schedule.unavailable})` : ""}`}
                     onClick={() => pickDate(d)}
                   >
                     {Number(d.slice(8))}
@@ -131,15 +132,15 @@ export default function SchedulePage() {
                 );
               })}
             </div>
-            {!overview && !error && <p className={styles.loading}>불러오는 중…</p>}
+            {!overview && !error && <p className={styles.loading}>{t.common.loading}</p>}
           </div>
         </section>
 
         {date && (
           <section className={styles.times}>
-            <h2 className={`title ${styles.blockTitle}`}>시간 선택</h2>
+            <h2 className={`title ${styles.blockTitle}`}>{t.schedule.timeTitle}</h2>
             {!slots ? (
-              <p className={styles.loading}>남은 자리 확인 중…</p>
+              <p className={styles.loading}>{t.schedule.checking}</p>
             ) : (
               <div className={styles.timeGrid}>
                 {slots.map((s) => {
@@ -154,13 +155,13 @@ export default function SchedulePage() {
                       onClick={() => setTime(s.time)}
                     >
                       <b>{s.time}</b>
-                      <small>{off ? "(마감)" : `(${s.remaining}자리 남음)`}</small>
+                      <small>{off ? t.schedule.full : fmt(t.schedule.remaining, { n: s.remaining })}</small>
                     </button>
                   );
                 })}
               </div>
             )}
-            <p className={styles.notice}>드레스 대여는 2시간이에요. 선택한 시간부터 2시간 동안 이용할 수 있어요.</p>
+            <p className={styles.notice}>{t.schedule.notice}</p>
           </section>
         )}
 
@@ -168,7 +169,7 @@ export default function SchedulePage() {
           {error && <p className={btn.error}>{error}</p>}
           {date && time && (
             <button type="button" className={btn.primary} onClick={next}>
-              다음으로
+              {t.common.next}
             </button>
           )}
         </div>

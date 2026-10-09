@@ -20,6 +20,8 @@ export async function POST(req: Request) {
       await tx`
         update dresses set
           name = coalesce(nullif(${String(form.get("name") ?? "").trim()}, ''), name),
+          name_en = ${String(form.get("nameEn") ?? "").trim() || null},
+          name_zh = ${String(form.get("nameZh") ?? "").trim() || null},
           price = ${price},
           price_usd = ${priceUsd},
           model_size = ${String(form.get("modelSize") ?? "").trim() || null},

@@ -23,8 +23,11 @@ const STATUS: Record<string, { label: string; tone: string }> = {
 };
 
 function phoneFmt(p: string) {
+  if (p.startsWith("+")) return p;
   return p.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
 }
+
+const LANG_BADGE: Record<string, string> = { ko: "", en: "EN", zh: "中文" };
 
 function BookingCard({ b, back }: { b: BookingView; back: string }) {
   const st = STATUS[b.status] ?? { label: b.status, tone: "muted" };
@@ -37,6 +40,7 @@ function BookingCard({ b, back }: { b: BookingView; back: string }) {
         </span>
         <b>{b.customerName}</b>
         <a href={`tel:${b.phone}`}>{phoneFmt(b.phone)}</a>
+        {LANG_BADGE[b.locale] && <span className={styles.badge}>{LANG_BADGE[b.locale]}</span>}
       </header>
       <p>
         {b.dressName} · <b>{b.dressSize}</b> · {b.currency === "USD" && b.amountUsd ? `$${b.amountUsd}` : won(b.amount)}

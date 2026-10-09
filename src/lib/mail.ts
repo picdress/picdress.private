@@ -3,20 +3,20 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "./config";
 import type { BookingView } from "./bookings";
-import { longDate, won } from "./time";
+import { dressName, fmt, getMessages, longDate, money, usd } from "@/i18n";
+import { formatKst } from "./time";
 
-// Gmail(picdress012@gmail.com 등) + 앱 비밀번호로 발송해요.
+// Gmail(picdress012@gmail.com) + 앱 비밀번호로 발송해요.
+// 고객 메일은 예약할 때 쓴 언어로, 관리자 알림은 한국어로 보내요.
 // 설정이 없으면 메일 대신 서버 로그(로컬은 .outbox 폴더)에 남겨요.
 
 let transporter: Transporter | null = null;
 function getTransport() {
   if (!config.gmailUser || !config.gmailAppPassword) return null;
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: config.gmailUser, pass: config.gmailAppPassword },
-    });
-  }
+  transporter ??= nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: config.gmailUser, pass: config.gmailAppPassword.replace(/\s/g, "") },
+  });
   return transporter;
 }
 
@@ -41,8 +41,12 @@ async function send(to: string, subject: string, html: string) {
 
 const C = { dark: "#485542", green: "#A2B798", light: "#F6FAF4", bg: "#E3E9E0" };
 
+function esc(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
 function layout(title: string, body: string) {
-  return `<!doctype html><html><body style="margin:0;background:${C.bg};font-family:'Apple SD Gothic Neo','Malgun Gothic',serif;color:${C.dark}">
+  return `<!doctype html><html><body style="margin:0;background:${C.bg};font-family:'Apple SD Gothic Neo','Malgun Gothic','PingFang SC','Microsoft YaHei',serif;color:${C.dark}">
   <div style="max-width:440px;margin:0 auto;padding:28px 16px">
     <div style="text-align:center;font-size:26px;font-weight:700;letter-spacing:-0.5px;margin-bottom:18px">pic<span style="font-style:italic;font-weight:400">.dress</span></div>
     <div style="background:${C.light};border-radius:16px;padding:26px 22px">
@@ -50,22 +54,28 @@ function layout(title: string, body: string) {
       ${body}
     </div>
     <p style="font-size:12px;line-height:1.6;text-align:center;margin-top:18px">
-      ${config.business.address} · ${config.business.phone}<br/>${config.business.email}
+      ${esc(config.business.address)} · ${esc(config.business.phone)}<br/>${esc(config.business.email)} · Instagram @pic.dress
     </p>
   </div></body></html>`;
 }
 
 function row(label: string, value: string) {
-  return `<tr><td style="padding:6px 0;font-weight:700;width:84px;vertical-align:top">${label}</td><td style="padding:6px 0">${value}</td></tr>`;
+  return `<tr><td style="padding:6px 0;font-weight:700;width:96px;vertical-align:top">${label}</td><td style="padding:6px 0">${value}</td></tr>`;
 }
 
-function details(b: BookingView) {
+function amountText(b: BookingView) {
+  return b.currency === "USD" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, b.locale);
+}
+
+function details(b: BookingView, extra = "") {
+  const t = getMessages(b.locale).mail;
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">
-    ${row("예약자", `${escape(b.customerName)} (${escape(b.phone)})`)}
-    ${row("일정", `${longDate(b.slotDate)} ${b.slotTime}`)}
-    ${row("드레스", `${escape(b.dressName)} · ${escape(b.dressSize)}`)}
-    ${row("금액", b.currency === "USD" && b.amountUsd ? `$${b.amountUsd}` : won(b.amount))}
-    ${row("예약번호", b.orderId)}
+    ${row(t.rowCustomer, `${esc(b.customerName)} (${esc(b.phone)})`)}
+    ${row(t.rowSchedule, `${longDate(b.slotDate, b.locale)} ${b.slotTime}`)}
+    ${row(t.rowDress, `${esc(dressName({ name: b.dressName, nameEn: b.dressNameEn, nameZh: b.dressNameZh }, b.locale))} · ${esc(b.dressSize)}`)}
+    ${row(t.rowAmount, amountText(b))}
+    ${row(t.rowOrder, b.orderId)}
+    ${extra}
   </table>`;
 }
 
@@ -73,63 +83,50 @@ function button(href: string, label: string) {
   return `<p style="text-align:center;margin:22px 0 4px"><a href="${href}" style="display:inline-block;background:${C.green};color:#fff;text-decoration:none;font-weight:700;padding:12px 28px;border-radius:40px">${label}</a></p>`;
 }
 
-function escape(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-}
-
 function manageUrl(b: BookingView) {
   return `${config.siteUrl}/booking/${b.manageToken}`;
 }
 
 export async function mailConfirmed(b: BookingView) {
+  const t = getMessages(b.locale).mail;
   await send(
     b.email,
-    `[pic.dress] 예약이 확정되었어요 (${longDate(b.slotDate)} ${b.slotTime})`,
+    fmt(t.confirmedSubject, { date: longDate(b.slotDate, b.locale), time: b.slotTime }),
     layout(
-      "예약이 확정되었어요 🌿",
+      t.confirmedTitle,
       `${details(b)}
-      <p style="font-size:13px;line-height:1.7;margin-top:16px">방문 시간 5분 전까지 매장(${config.business.address})으로 와주세요.<br/>제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.</p>
-      ${button(manageUrl(b), "예약 확인 · 취소")}`,
+      <p style="font-size:13px;line-height:1.7;margin-top:16px">${fmt(t.confirmedBody, { address: esc(config.business.address) })}</p>
+      ${button(manageUrl(b), t.manage)}`,
     ),
   );
-  await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate)} ${b.slotTime}`, b);
+  await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${b.paymentMethod ?? ""})`, b);
 }
 
-export async function mailDepositRequest(b: BookingView, deadline: string) {
+export async function mailDepositRequest(b: BookingView) {
+  const t = getMessages(b.locale).mail;
+  const extra =
+    row(t.rowBank, esc(config.bankAccount || "-")) +
+    row(t.rowDepositor, esc(b.customerName)) +
+    row(t.rowDeadline, formatKst(b.holdExpiresAt));
   await send(
     b.email,
-    `[pic.dress] 입금해 주시면 예약이 확정돼요`,
-    layout(
-      "입금 안내",
-      `${details(b)}
-      <div style="background:${C.bg};border-radius:10px;padding:14px;margin-top:16px;font-size:14px;line-height:1.7">
-        <b>입금 계좌</b><br/>${escape(config.bankAccount || "(계좌 정보 미설정)")}<br/>
-        <b>입금자명</b> ${escape(b.customerName)}<br/>
-        <b>입금 기한</b> ${deadline}까지
-      </div>
-      <p style="font-size:13px;line-height:1.7">기한 안에 입금이 확인되지 않으면 예약이 자동으로 취소돼요.</p>
-      ${button(manageUrl(b), "예약 확인")}`,
-    ),
+    t.depositSubject,
+    layout(t.depositTitle, `${details(b, extra)}<p style="font-size:13px;line-height:1.7">${t.depositBody}</p>${button(manageUrl(b), t.view)}`),
   );
-  await notifyAdmin(`입금 대기: ${b.customerName} ${longDate(b.slotDate)} ${b.slotTime}`, b);
+  await notifyAdmin(`입금 대기: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
 }
 
 export async function mailCancelled(b: BookingView) {
-  const refundLine =
+  const t = getMessages(b.locale).mail;
+  const refund =
     b.refundAmount > 0
-      ? b.paymentMode === "manual"
-        ? `<p style="font-size:14px">환불 예정 금액: <b>${won(b.refundAmount)}</b><br/>환불 받으실 계좌를 이 메일에 회신해 주세요.</p>`
-        : `<p style="font-size:14px">환불 금액: <b>${won(b.refundAmount)}</b><br/>결제 수단에 따라 영업일 기준 3~7일 안에 환불돼요.</p>`
+      ? `<p style="font-size:14px;line-height:1.7">${fmt(b.paymentMode === "manual" ? t.refundManual : t.refundOnline, { amount: money(b.refundAmount, b.locale) })}</p>`
       : "";
-  await send(
-    b.email,
-    `[pic.dress] 예약이 취소되었어요`,
-    layout("예약이 취소되었어요", `${details(b)}${refundLine}`),
-  );
-  await notifyAdmin(`예약 취소: ${b.customerName} ${longDate(b.slotDate)} ${b.slotTime} (환불 ${won(b.refundAmount)})`, b);
+  await send(b.email, t.cancelledSubject, layout(t.cancelledTitle, `${details(b)}${refund}`));
+  await notifyAdmin(`예약 취소: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (환불 ${money(b.refundAmount, "ko")})`, b);
 }
 
 async function notifyAdmin(subject: string, b: BookingView) {
   if (!config.adminNotifyEmail) return;
-  await send(config.adminNotifyEmail, `[pic.dress 관리] ${subject}`, layout(subject, details(b)));
+  await send(config.adminNotifyEmail, `[pic.dress 관리] ${subject}`, layout(esc(subject), details({ ...b, locale: "ko" })));
 }

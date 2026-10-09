@@ -79,3 +79,13 @@ button {
 body:has([data-admin]) {
   max-width: 820px;
 }
+
+/* 중국어 화면: 한국어 글꼴의 한자 대신 중국어(간체) 명조 글꼴을 써요 */
+html[lang="zh-CN"] {
+  --font-title: "Arita Buri KR", "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
+  --font-body: "Songti SC", "STSong", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
+}
+
+html[lang="zh-CN"] body {
+  word-break: normal;
+}

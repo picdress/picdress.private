@@ -5,36 +5,51 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
+import { useI18n } from "@/i18n/client";
+import { fmt } from "@/i18n/format";
 import styles from "../payment/payment.module.css";
 
+const USER_CANCEL = /USER_CANCEL|PAY_PROCESS_CANCELED|취소/i;
+
 function FailInner() {
+  const { t } = useI18n();
   const sp = useSearchParams();
-  const code = sp.get("code");
-  const message = sp.get("message");
+  const code = sp.get("code") ?? "";
+  const message = sp.get("message") ?? "";
   const orderId = sp.get("orderId");
 
-  // 결제를 안 했으니 잡아둔 자리는 바로 풀어줌
-  useEffect(() => {
-    if (!orderId) return;
-    navigator.sendBeacon?.("/api/bookings/release", JSON.stringify({ orderId }));
-  }, [orderId]);
+  const ours = t.errors[code]; // 우리 서버가 정한 오류(자리 마감 자동취소 등)
+  const userCancel = !ours && (USER_CANCEL.test(code) || USER_CANCEL.test(message));
+  const soldOut = code === "SOLD_OUT_REFUNDED";
 
-  const userCancel = code === "PAY_PROCESS_CANCELED" || code === "USER_CANCEL";
+  // 결제를 안 했으면 잡아둔 자리는 바로 풀어줌 (결제 확인 중일 때는 그대로 둠)
+  useEffect(() => {
+    if (!orderId || code === "PAYMENT_PENDING" || code === "ALREADY_PAID") return;
+    navigator.sendBeacon?.("/api/bookings/release", JSON.stringify({ orderId }));
+  }, [orderId, code]);
 
   return (
     <div className={btn.page}>
       <div className={styles.fatal}>
-        <p className="title">{userCancel ? "결제를 취소했어요" : "결제가 완료되지 않았어요"}</p>
-        <p>{userCancel ? "결제는 진행되지 않았어요. 다시 시도할 수 있어요." : message || "잠시 후 다시 시도해 주세요."}</p>
-        {code && !userCancel && <p style={{ fontSize: 12, opacity: 0.6, marginTop: 8 }}>오류 코드: {code}</p>}
+        <p className="title">{userCancel ? t.fail.cancelledTitle : t.fail.failTitle}</p>
+        <p>{userCancel ? t.fail.cancelledBody : ours || message || t.fail.failBody}</p>
+        {code && !ours && !userCancel && <p style={{ fontSize: 12, opacity: 0.6, marginTop: 8 }}>{fmt(t.fail.code, { code })}</p>}
       </div>
       <div className={btn.bottom}>
-        <Link href="/reserve/payment" className={btn.primary}>
-          다시 결제하기
-        </Link>
-        <Link href="/reserve/schedule" style={{ fontSize: 13 }}>
-          일정 다시 고르기
-        </Link>
+        {soldOut ? (
+          <Link href="/reserve/schedule" className={btn.primary}>
+            {t.fail.reschedule}
+          </Link>
+        ) : (
+          <>
+            <Link href="/reserve/payment" className={btn.primary}>
+              {t.fail.retry}
+            </Link>
+            <Link href="/reserve/schedule" style={{ fontSize: 13 }}>
+              {t.fail.reschedule}
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

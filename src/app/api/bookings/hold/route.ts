@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createHold, orderName } from "@/lib/bookings";
 import { config, paymentsReady } from "@/lib/config";
 import { clientIp, errorJson } from "@/lib/http";
+import { getLocale } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +25,30 @@ export async function POST(req: Request) {
         time: String(body.time ?? ""),
         dressId: String(body.dressId ?? ""),
         size: String(body.size ?? ""),
+        locale: await getLocale(),
       },
       clientIp(req),
     );
+    const mock = config.mockPayments;
     return NextResponse.json({
       orderId: b.orderId,
-      orderName: orderName(b.dressName, b.slotDate, b.slotTime),
+      orderName: orderName(b.dressNameEn || b.dressName, b.slotDate, b.slotTime),
+      dressId: b.dressId,
       amount: b.amount,
       amountUsd: b.amountUsd,
       holdExpiresAt: b.holdExpiresAt,
       customer: { name: b.customerName, phone: b.phone, email: b.email },
       payment: {
         mode: config.paymentMode,
-        mock: config.mockPayments,
-        clientKey: config.tossClientKey,
+        mock,
+        storeId: config.portoneStoreId,
+        // 채널 키는 결제창을 띄울 때 쓰는 공개 값이에요 (비밀 키 아님)
+        channelKr: config.portoneChannelKr || (mock ? "mock" : ""),
+        channelGlobal: config.portoneChannelGlobal || (mock ? "mock" : ""),
+        globalCurrency: config.globalCurrency,
         bankAccount: config.bankAccount,
         depositHours: config.depositHours,
+        siteUrl: config.siteUrl,
       },
     });
   } catch (e) {

@@ -82,3 +82,9 @@ create table if not exists booking_events (
   created_at  timestamptz not null default now()
 );
 create index if not exists booking_events_booking_idx on booking_events (booking_id);
+
+-- ── 다국어 / 해외결제 추가 (2026-10) ──
+alter table dresses  add column if not exists name_en text;
+alter table dresses  add column if not exists name_zh text;
+alter table bookings add column if not exists locale text not null default 'ko';
+alter table bookings add column if not exists payment_channel text;   -- kr | global

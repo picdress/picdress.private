@@ -12,3 +12,8 @@ insert into dress_stock (dress_id, size, quantity, sort) values
   ('black-modern',     'S', 1, 1), ('black-modern',     'M', 1, 2), ('black-modern',     'L', 1, 3),
   ('white-tweed',      'S', 1, 1), ('white-tweed',      'M', 1, 2), ('white-tweed',      'L', 1, 3)
 on conflict (dress_id, size) do nothing;
+
+-- 드레스 영어·중국어 이름 (비어 있을 때만 채움)
+update dresses set name_en = 'Green Tinker Bell', name_zh = '绿色小叮当' where id = 'green-tinkerbell' and name_en is null;
+update dresses set name_en = 'Black Modern',      name_zh = '黑色摩登'   where id = 'black-modern'     and name_en is null;
+update dresses set name_en = 'White Tweed',       name_zh = '白色粗花呢' where id = 'white-tweed'      and name_en is null;

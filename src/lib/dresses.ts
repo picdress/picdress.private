@@ -5,6 +5,8 @@ export type DressSize = { size: string; quantity: number; remaining: number | nu
 export type Dress = {
   id: string;
   name: string;
+  nameEn: string | null;
+  nameZh: string | null;
   price: number;
   priceUsd: string | null;
   image: string;
@@ -17,6 +19,8 @@ export type Dress = {
 type DressRow = {
   id: string;
   name: string;
+  name_en: string | null;
+  name_zh: string | null;
   price: number;
   price_usd: string | null;
   image: string;
@@ -29,7 +33,7 @@ type DressRow = {
 export async function listDresses(opts: { date?: string; time?: string; includeInactive?: boolean } = {}) {
   const sql = db();
   const dresses = await sql<DressRow[]>`
-    select id, name, price, price_usd, image, model_size, model_spec, active
+    select id, name, name_en, name_zh, price, price_usd, image, model_size, model_spec, active
     from dresses ${opts.includeInactive ? sql`` : sql`where active`}
     order by sort, name
   `;
@@ -44,6 +48,8 @@ export async function listDresses(opts: { date?: string; time?: string; includeI
   return dresses.map<Dress>((d) => ({
     id: d.id,
     name: d.name,
+    nameEn: d.name_en,
+    nameZh: d.name_zh,
     price: d.price,
     priceUsd: d.price_usd,
     image: d.image,

@@ -3,37 +3,80 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ANONYMOUS, loadTossPayments } from "@tosspayments/tosspayments-sdk";
+import * as PortOne from "@portone/browser-sdk/v2";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
-import { shortDate, useReservation, won } from "../useReservation";
+import { useI18n } from "@/i18n/client";
+import { dressName, errorText, fmt, money, shortDate, usd } from "@/i18n/format";
+import { PORTONE_LOCALE, type Locale } from "@/i18n/locales";
+import { useReservation } from "../useReservation";
 import styles from "./payment.module.css";
 
 type Hold = {
   orderId: string;
   orderName: string;
+  dressId: string;
   amount: number;
   amountUsd: string | null;
   holdExpiresAt: string;
   customer: { name: string; phone: string; email: string };
-  payment: { mode: "toss" | "manual"; mock: boolean; clientKey: string; bankAccount: string; depositHours: number };
+  payment: {
+    mode: "toss" | "manual";
+    mock: boolean;
+    storeId: string;
+    channelKr: string;
+    channelGlobal: string;
+    globalCurrency: "KRW" | "USD";
+    bankAccount: string;
+    depositHours: number;
+    siteUrl: string;
+  };
 };
 
-type Method = "TOSSPAY" | "KAKAOPAY" | "TRANSFER" | "PAYPAL";
+type Method = "TOSSPAY" | "KAKAOPAY" | "TRANSFER" | "CARD" | "ALIPAY" | "WECHAT" | "UNIONPAY" | "INTL_CARD" | "PAYPAL";
 
-const METHODS: { id: Method; label: string; img?: string; imgW?: number }[] = [
-  { id: "TOSSPAY", label: "토스페이", img: "/images/pay/tosspay.png", imgW: 101 },
-  { id: "KAKAOPAY", label: "카카오페이", img: "/images/pay/kakaopay.png", imgW: 56 },
-  { id: "TRANSFER", label: "계좌이체" },
-  { id: "PAYPAL", label: "PayPal", img: "/images/pay/paypal.png", imgW: 93 },
-];
+const KR_METHODS: Method[] = ["TOSSPAY", "KAKAOPAY", "TRANSFER", "CARD"];
+const GLOBAL_METHODS: Record<Locale, Method[]> = {
+  ko: ["ALIPAY", "WECHAT", "UNIONPAY", "INTL_CARD", "PAYPAL"],
+  zh: ["ALIPAY", "WECHAT", "UNIONPAY", "INTL_CARD", "PAYPAL"],
+  en: ["INTL_CARD", "PAYPAL", "ALIPAY", "WECHAT", "UNIONPAY"],
+};
+const IS_GLOBAL = new Set<Method>(["ALIPAY", "WECHAT", "UNIONPAY", "INTL_CARD", "PAYPAL"]);
+
+/** 엑심베이 결제수단 코드 (developer.eximbay.com 결제수단 코드표) */
+function eximbayCode(m: Method) {
+  const mobile = typeof navigator !== "undefined" && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+  switch (m) {
+    case "ALIPAY":
+      return "P003"; // 알리페이 / 알리페이플러스
+    case "WECHAT":
+      return mobile ? "P142" : "P141"; // 위챗 모바일 / PC(QR)
+    case "UNIONPAY":
+      return "P002"; // 유니온페이(UPOP)
+    case "PAYPAL":
+      return "P001";
+    default:
+      return "P000"; // 해외 신용카드 (Visa·Master·JCB·Amex)
+  }
+}
+
+const TILE_LOOK: Partial<Record<Method, { img?: string; imgW?: number; color?: string }>> = {
+  TOSSPAY: { img: "/images/pay/tosspay.png", imgW: 101 },
+  KAKAOPAY: { img: "/images/pay/kakaopay.png", imgW: 56 },
+  PAYPAL: { img: "/images/pay/paypal.png", imgW: 93 },
+  ALIPAY: { color: "#1677ff" },
+  WECHAT: { color: "#07a35a" },
+  UNIONPAY: { color: "#d7172f" },
+  INTL_CARD: { color: "#1a1f71" },
+};
 
 // 04_결제화면
 export default function PaymentPage() {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const { r, update, ready } = useReservation();
   const [hold, setHold] = useState<Hold | null>(null);
-  const [dressName, setDressName] = useState("");
+  const [dressLabel, setDressLabel] = useState("");
   const [method, setMethod] = useState<Method>();
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
@@ -61,24 +104,23 @@ export default function PaymentPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        const code: string = data.error ?? "";
         const back =
-          data.error === "DRESS_UNAVAILABLE"
+          code === "DRESS_UNAVAILABLE"
             ? `/reserve/dress/${r.dressId}`
-            : data.error?.startsWith("SLOT")
-              ? "/reserve/schedule"
-              : data.error?.startsWith("INVALID_") && ["INVALID_NAME", "INVALID_PHONE", "INVALID_EMAIL"].includes(data.error)
-                ? "/reserve"
-                : "/reserve/schedule";
-        setFatal({ message: data.message ?? "자리를 잡지 못했어요.", back });
+            : ["INVALID_NAME", "INVALID_PHONE", "INVALID_EMAIL"].includes(code)
+              ? "/reserve"
+              : "/reserve/schedule";
+        setFatal({ message: errorText(t, code, data.message), back });
         return;
       }
       setHold(data);
       update({ orderId: data.orderId });
       if (data.payment.mode === "manual") setMethod("TRANSFER");
     } catch {
-      setFatal({ message: "네트워크 문제로 자리를 잡지 못했어요. 다시 시도해 주세요.", back: "/reserve/payment" });
+      setFatal({ message: t.errors.NETWORK, back: "/reserve/payment" });
     }
-  }, [r, update]);
+  }, [r, update, t]);
 
   useEffect(() => {
     if (!ready || started.current) return;
@@ -89,7 +131,10 @@ export default function PaymentPage() {
     createHold();
     fetch(`/api/dresses`)
       .then((res) => res.json())
-      .then((d) => setDressName(d.dresses.find((x: { id: string }) => x.id === r.dressId)?.name ?? ""))
+      .then((d) => {
+        const found = d.dresses.find((x: { id: string }) => x.id === r.dressId);
+        if (found) setDressLabel(dressName(found, locale));
+      })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
@@ -99,17 +144,34 @@ export default function PaymentPage() {
     if (!hold) return;
     const tick = () => setLeft(Math.max(0, Math.floor((Date.parse(hold.holdExpiresAt) - Date.now()) / 1000)));
     tick();
-    const t = setInterval(tick, 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
   }, [hold]);
 
   const expired = hold !== null && left <= 0;
   const manual = hold?.payment.mode === "manual";
-  const methods = METHODS.filter((m) => m.id !== "PAYPAL" || hold?.amountUsd);
+  const usdGlobal = hold?.payment.globalCurrency === "USD";
+
+  const krGroup = hold?.payment.channelKr ? KR_METHODS : [];
+  const globalGroup = hold?.payment.channelGlobal
+    ? GLOBAL_METHODS[locale].filter(() => !usdGlobal || Boolean(hold?.amountUsd))
+    : [];
+  const groups: { title: string; methods: Method[] }[] = (
+    locale === "ko"
+      ? [
+          { title: t.payment.groupKr, methods: krGroup },
+          { title: t.payment.groupGlobal, methods: globalGroup },
+        ]
+      : [
+          { title: t.payment.groupGlobal, methods: globalGroup },
+          { title: t.payment.groupKr, methods: krGroup },
+        ]
+  ).filter((g) => g.methods.length > 0);
 
   async function pay() {
-    if (!hold || !method) return;
-    if (!agreed) return setError("예약 내용과 취소·환불 규정에 동의해 주세요.");
+    if (!hold) return;
+    if (!method) return setError(t.payment.errChoose);
+    if (!agreed) return setError(t.payment.errAgree);
     setError("");
     setBusy(true);
     try {
@@ -120,62 +182,76 @@ export default function PaymentPage() {
           body: JSON.stringify({ orderId: hold.orderId }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message);
+        if (!res.ok) throw Object.assign(new Error(data.message), { code: data.error });
         router.push(`/booking/${data.manageToken}?done=1`);
         return;
       }
 
-      const usd = method === "PAYPAL";
-      const amountValue = usd ? Number(hold.amountUsd) : hold.amount;
-
       if (hold.payment.mock) {
         // 로컬 테스트용 모의 결제
-        const q = new URLSearchParams({
-          paymentKey: `mock_${Date.now()}`,
-          orderId: hold.orderId,
-          amount: String(amountValue),
-        });
-        window.location.href = `/api/payments/success?${q}`;
+        const q = new URLSearchParams({ paymentId: hold.orderId, mock: "1", m: method });
+        window.location.href = `/api/payments/complete?${q}`;
         return;
       }
 
-      const toss = await loadTossPayments(hold.payment.clientKey);
-      const payment = toss.payment({ customerKey: ANONYMOUS });
-      const common = {
-        orderId: hold.orderId,
+      const global = IS_GLOBAL.has(method);
+      const useUsd = global && usdGlobal;
+      const totalAmount = useUsd ? Math.round(Number(hold.amountUsd) * 100) : hold.amount;
+      const base = {
+        storeId: hold.payment.storeId,
+        channelKey: global ? hold.payment.channelGlobal : hold.payment.channelKr,
+        paymentId: hold.orderId,
         orderName: hold.orderName,
-        successUrl: `${window.location.origin}/api/payments/success`,
-        failUrl: `${window.location.origin}/reserve/fail`,
-        customerName: hold.customer.name,
-        customerEmail: hold.customer.email,
-        customerMobilePhone: hold.customer.phone,
+        totalAmount,
+        currency: (useUsd ? "USD" : "KRW") as "USD" | "KRW",
+        redirectUrl: `${window.location.origin}/api/payments/complete`,
+        locale: PORTONE_LOCALE[locale],
+        customData: { method },
+        customer: {
+          fullName: hold.customer.name,
+          email: hold.customer.email,
+          phoneNumber: hold.customer.phone,
+        },
+        products: [
+          {
+            id: hold.dressId,
+            name: hold.orderName,
+            amount: totalAmount,
+            quantity: 1,
+            link: hold.payment.siteUrl,
+          },
+        ],
       };
+
+      let req: PortOne.PaymentRequest;
       if (method === "TOSSPAY" || method === "KAKAOPAY") {
-        await payment.requestPayment({
-          ...common,
-          method: "CARD",
-          amount: { currency: "KRW", value: hold.amount },
-          card: { flowMode: "DIRECT", easyPay: method },
-        });
+        req = { ...base, payMethod: "EASY_PAY", easyPay: { easyPayProvider: method } };
       } else if (method === "TRANSFER") {
-        await payment.requestPayment({
-          ...common,
-          method: "TRANSFER",
-          amount: { currency: "KRW", value: hold.amount },
-          transfer: { cashReceipt: { type: "소득공제" }, useEscrow: false },
-        });
+        req = { ...base, payMethod: "TRANSFER" };
+      } else if (method === "CARD") {
+        req = { ...base, payMethod: "CARD" };
       } else {
-        await payment.requestPayment({
-          ...common,
-          method: "FOREIGN_EASY_PAY",
-          amount: { currency: "USD", value: amountValue },
-          foreignEasyPay: { provider: "PAYPAL", country: "KR" },
-        });
+        // 해외 결제(엑심베이): 결제창에 고른 결제수단만 보이게
+        req = {
+          ...base,
+          payMethod: "CARD",
+          bypass: { eximbay_v2: { payment: { payment_method: eximbayCode(method) } } },
+        } as PortOne.PaymentRequest;
+      }
+
+      const res = await PortOne.requestPayment(req);
+      // PC처럼 리디렉트 없이 끝나는 경우: 결과를 들고 완료 처리 주소로 이동
+      if (res) {
+        const q = new URLSearchParams({ paymentId: res.paymentId });
+        if (res.code) {
+          q.set("code", res.code);
+          if (res.message) q.set("message", res.message);
+        }
+        window.location.href = `/api/payments/complete?${q}`;
       }
     } catch (e) {
       const err = e as { code?: string; message?: string };
-      if (err.code === "USER_CANCEL") setError("결제를 취소했어요. 다시 시도할 수 있어요.");
-      else setError(err.message || "결제를 시작하지 못했어요. 다시 시도해 주세요.");
+      setError(err.code === "USER_CANCEL" ? t.payment.userCancel : errorText(t, err.code, err.message || t.payment.startFail));
     } finally {
       setBusy(false);
     }
@@ -187,18 +263,20 @@ export default function PaymentPage() {
         <Header back />
         <div className={btn.page}>
           <div className={styles.fatal}>
-            <p className="title">예약을 진행할 수 없어요</p>
+            <p className="title">{t.payment.fatalTitle}</p>
             <p>{fatal.message}</p>
           </div>
           <div className={btn.bottom}>
-            <Link href={fatal.back} className={btn.primary} onClick={() => fatal.back === "/reserve/payment" && location.reload()}>
-              다시 고르기
+            <Link href={fatal.back} className={btn.primary}>
+              {t.payment.chooseAgain}
             </Link>
           </div>
         </div>
       </>
     );
   }
+
+  const priceText = hold ? money(hold.amount, locale) : "…";
 
   return (
     <>
@@ -207,103 +285,119 @@ export default function PaymentPage() {
         <section className={styles.summary}>
           <div className={styles.rows}>
             <div className={styles.row}>
-              <h2 className="title">예약 정보</h2>
+              <h2 className="title">{t.payment.booking}</h2>
               <div className={styles.chips}>
                 <span className={styles.chip}>{r.date ? shortDate(r.date) : ""}</span>
                 <span className={styles.chip}>{r.time}</span>
               </div>
             </div>
             <div className={styles.row}>
-              <h2 className="title">드레스</h2>
+              <h2 className="title">{t.payment.dress}</h2>
               <div className={styles.chips}>
-                <span className={styles.chip}>{dressName || "…"}</span>
+                <span className={styles.chip}>{dressLabel || "…"}</span>
                 <span className={styles.chip}>{r.size}</span>
               </div>
             </div>
           </div>
           <hr className={styles.line} />
           <div className={`title ${styles.price}`}>
-            <span>가격</span>
-            <span>{hold ? won(hold.amount) : "…"}</span>
+            <span>{t.payment.price}</span>
+            <span>{priceText}</span>
           </div>
         </section>
 
         <section className={styles.methods}>
-          <h2 className={`title ${styles.methodsTitle}`}>결제 수단</h2>
+          <h2 className={`title ${styles.methodsTitle}`}>{t.payment.methods}</h2>
           {manual ? (
             <>
               <div className={styles.grid}>
                 <button type="button" className={styles.tile} aria-pressed>
-                  <span className={styles.tileText}>계좌이체</span>
+                  <span className={styles.tileText}>{t.payment.method.TRANSFER}</span>
                 </button>
               </div>
               <div className={styles.bank}>
                 <p>
-                  <b>입금 계좌</b> {hold?.payment.bankAccount || "준비 중"}
+                  <b>{t.payment.bankAccount}</b> {hold?.payment.bankAccount || t.payment.preparing}
                 </p>
                 <p>
-                  <b>입금자명</b> {hold?.customer.name}
+                  <b>{t.payment.depositor}</b> {hold?.customer.name}
                 </p>
-                <p>신청 후 {hold?.payment.depositHours}시간 안에 입금해 주시면 확인 후 예약이 확정돼요.</p>
+                <p>{fmt(t.payment.depositNotice, { hours: hold?.payment.depositHours ?? "" })}</p>
               </div>
             </>
           ) : (
-            <div className={styles.grid} role="radiogroup" aria-label="결제 수단">
-              {methods.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={method === m.id}
-                  aria-label={m.label}
-                  className={styles.tile}
-                  onClick={() => setMethod(m.id)}
-                >
-                  {m.img ? (
-                    <img src={m.img} alt="" style={{ width: m.imgW }} />
-                  ) : (
-                    <span className={styles.tileText}>{m.label}</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            groups.map((g) => (
+              <div key={g.title} className={styles.group}>
+                {groups.length > 1 && <p className={styles.groupTitle}>{g.title}</p>}
+                <div className={styles.grid} role="radiogroup" aria-label={g.title}>
+                  {g.methods.map((m) => {
+                    const look = TILE_LOOK[m] ?? {};
+                    const label = t.payment.method[m];
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        role="radio"
+                        aria-checked={method === m}
+                        aria-label={label}
+                        className={styles.tile}
+                        onClick={() => {
+                          setMethod(m);
+                          setError("");
+                        }}
+                      >
+                        {look.img ? (
+                          <img src={look.img} alt="" style={{ width: look.imgW }} />
+                        ) : (
+                          <span className={styles.tileText} style={look.color ? { color: look.color, fontWeight: 700 } : undefined}>
+                            {label}
+                            {m === "INTL_CARD" && <small className={styles.tileSub}>{t.payment.intlCardSub}</small>}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
           )}
-          {method === "PAYPAL" && hold?.amountUsd && (
-            <p className={styles.usd}>PayPal은 달러로 결제돼요: ${hold.amountUsd}</p>
+          {method && IS_GLOBAL.has(method) && (
+            <p className={styles.usd}>
+              {usdGlobal && hold?.amountUsd
+                ? fmt(t.payment.globalNoteUsd, { amount: usd(hold.amountUsd) })
+                : t.payment.globalNote}
+            </p>
           )}
         </section>
 
         <label className={styles.agree}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
-            예약 내용을 확인했고,{" "}
+            {t.payment.agree.split("{refund}")[0]}
             <Link href="/policy#refund" target="_blank">
-              취소·환불 규정
+              {t.payment.refundLink}
             </Link>
-            에 동의합니다.
+            {t.payment.agree.split("{refund}")[1]}
           </span>
         </label>
 
         <div className={btn.bottom} style={{ paddingTop: 24 }}>
           {hold && !expired && (
             <p className={styles.timer}>
-              {String(Math.floor(left / 60)).padStart(2, "0")}:{String(left % 60).padStart(2, "0")} 동안 자리를 잡아두고 있어요
+              {fmt(t.payment.hold, {
+                time: `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`,
+              })}
             </p>
           )}
-          {expired && <p className={btn.error}>시간이 지나 잡아둔 자리가 풀렸어요.</p>}
+          {expired && <p className={btn.error}>{t.payment.expired}</p>}
           {error && <p className={btn.error}>{error}</p>}
           {expired ? (
             <button type="button" className={btn.primary} onClick={createHold}>
-              다시 자리 잡기
+              {t.payment.regrab}
             </button>
           ) : (
-            <button
-              type="button"
-              className={btn.primary}
-              disabled={!hold || !method || busy}
-              onClick={pay}
-            >
-              {busy ? "잠시만요…" : manual ? "예약 신청하기" : "결제하기"}
+            <button type="button" className={btn.primary} disabled={!hold || busy} onClick={pay}>
+              {busy ? t.common.wait : manual ? t.payment.submitDeposit : t.payment.pay}
             </button>
           )}
         </div>

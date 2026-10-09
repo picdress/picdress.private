@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { BookingError } from "./bookings";
-import { TossError } from "./toss";
+import { PaymentApiError } from "./portone";
 
 export function clientIp(req: Request) {
   const xff = req.headers.get("x-forwarded-for");
@@ -8,7 +8,7 @@ export function clientIp(req: Request) {
 }
 
 export function errorJson(e: unknown) {
-  if (e instanceof BookingError || e instanceof TossError) {
+  if (e instanceof BookingError || e instanceof PaymentApiError) {
     return NextResponse.json({ error: e.code, message: e.message }, { status: e.status });
   }
   console.error(e);
@@ -16,7 +16,15 @@ export function errorJson(e: unknown) {
 }
 
 export function errorMessage(e: unknown) {
-  if (e instanceof BookingError || e instanceof TossError) return e.message;
+  if (e instanceof BookingError || e instanceof PaymentApiError) return e.message;
   console.error(e);
   return "처리 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.";
+}
+
+/** 고객 화면용 오류 코드 */
+export function errorCode(e: unknown) {
+  if (e instanceof BookingError) return e.code;
+  if (e instanceof PaymentApiError) return "SERVER_ERROR";
+  console.error(e);
+  return "SERVER_ERROR";
 }

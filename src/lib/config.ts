@@ -46,12 +46,20 @@ export const config = {
   dressBufferMinutes: int(env.DRESS_BUFFER_MINUTES, 0),
 
   // 결제
-  /** toss: 토스페이먼츠 실결제 / manual: 계좌이체(무통장입금) 후 관리자 확인 */
+  /** toss: 온라인 결제(포트원) / manual: 계좌이체(무통장입금) 후 관리자 확인 */
   paymentMode: (env.PAYMENT_MODE === "manual" ? "manual" : "toss") as "toss" | "manual",
   /** 로컬 테스트용 모의 결제. 운영 서버에서는 절대 켜지 마세요. */
   mockPayments: env.PAYMENT_MOCK === "1",
-  tossClientKey: env.TOSS_CLIENT_KEY ?? "",
-  tossSecretKey: env.TOSS_SECRET_KEY ?? "",
+  // 포트원 (https://admin.portone.io → 결제 연동)
+  portoneStoreId: env.PORTONE_STORE_ID ?? "",
+  portoneApiSecret: env.PORTONE_API_SECRET ?? "",
+  portoneWebhookSecret: env.PORTONE_WEBHOOK_SECRET ?? "",
+  /** 국내 결제 채널 (토스페이먼츠): 토스페이·카카오페이·계좌이체·카드 */
+  portoneChannelKr: env.PORTONE_CHANNEL_KR ?? "",
+  /** 해외 결제 채널 (엑심베이): 알리페이·위챗페이·유니온페이·해외카드·PayPal */
+  portoneChannelGlobal: env.PORTONE_CHANNEL_GLOBAL ?? "",
+  /** 해외 결제 청구 통화: KRW(기본, 원화 가격 그대로) 또는 USD(드레스별 달러 가격 사용) */
+  globalCurrency: (env.GLOBAL_CURRENCY === "USD" ? "USD" : "KRW") as "KRW" | "USD",
   /** 결제 화면에서 자리를 잡아두는 시간 */
   holdMinutes: int(env.HOLD_MINUTES, 10),
   /** 무통장입금 모드에서 입금 기한 */
@@ -84,6 +92,6 @@ export const config = {
 } as const;
 
 export function paymentsReady() {
-  if (config.paymentMode === "manual") return true;
-  return config.mockPayments || (config.tossClientKey !== "" && config.tossSecretKey !== "");
+  if (config.paymentMode === "manual" || config.mockPayments) return true;
+  return Boolean(config.portoneStoreId && config.portoneApiSecret && (config.portoneChannelKr || config.portoneChannelGlobal));
 }

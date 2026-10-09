@@ -4,7 +4,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
-import { useReservation, won } from "../../useReservation";
+import { useI18n } from "@/i18n/client";
+import { dressName, fmt, money } from "@/i18n/format";
+import { useReservation } from "../../useReservation";
 import styles from "../../reserve.module.css";
 import type { Dress } from "@/lib/dresses";
 
@@ -12,6 +14,7 @@ import type { Dress } from "@/lib/dresses";
 export default function DressDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { t, locale } = useI18n();
   const { r, update, ready } = useReservation();
   const [dress, setDress] = useState<Dress | null>(null);
   const [size, setSize] = useState<string>();
@@ -29,7 +32,7 @@ export default function DressDetailPage() {
         setDress(found);
         if (r.dressId === id && found.sizes.some((s) => s.size === r.size && (s.remaining ?? 0) > 0)) setSize(r.size);
       })
-      .catch(() => setError("드레스 정보를 불러오지 못했어요."));
+      .catch(() => setError(t.dress.loadError));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, id]);
 
@@ -46,19 +49,19 @@ export default function DressDetailPage() {
       <Header back />
       <div className={`${btn.page} ${styles.detail}`}>
         {!dress ? (
-          <p className={styles.loading}>{error || "불러오는 중…"}</p>
+          <p className={styles.loading}>{error || t.common.loading}</p>
         ) : (
           <>
-            <h1 className={`title ${styles.detailName}`}>{dress.name}</h1>
-            <p className={styles.detailPrice}>{won(dress.price)}</p>
-            <img className={styles.detailImg} src={dress.image} alt={dress.name} />
+            <h1 className={`title ${styles.detailName}`}>{dressName(dress, locale)}</h1>
+            <p className={styles.detailPrice}>{money(dress.price, locale)}</p>
+            <img className={styles.detailImg} src={dress.image} alt={dressName(dress, locale)} />
 
-            <h2 className={`title ${styles.sizeTitle}`}>사이즈 선택</h2>
+            <h2 className={`title ${styles.sizeTitle}`}>{t.dress.sizeTitle}</h2>
             {(dress.modelSize || dress.modelSpec) && (
               <p className={styles.model}>
-                {dress.modelSize && <>모델 착용 사이즈: {dress.modelSize}</>}
+                {dress.modelSize && fmt(t.dress.modelSize, { v: dress.modelSize })}
                 {dress.modelSize && dress.modelSpec && <br />}
-                {dress.modelSpec && <>모델 스펙: {dress.modelSpec}</>}
+                {dress.modelSpec && fmt(t.dress.modelSpec, { v: dress.modelSpec })}
               </p>
             )}
             <div className={styles.sizes}>
@@ -69,22 +72,22 @@ export default function DressDetailPage() {
                   className={styles.size}
                   disabled={(s.remaining ?? 0) <= 0}
                   aria-pressed={size === s.size}
-                  aria-label={`${s.size}${(s.remaining ?? 0) <= 0 ? " 예약 마감" : ""}`}
+                  aria-label={`${s.size}${(s.remaining ?? 0) <= 0 ? ` (${t.dress.sizeTaken})` : ""}`}
                   onClick={() => setSize(s.size)}
                 >
                   {s.size}
                 </button>
               ))}
             </div>
-            {allGone && <p className={styles.sizeNote}>이 시간엔 모든 사이즈가 예약됐어요. 다른 드레스를 골라주세요.</p>}
+            {allGone && <p className={styles.sizeNote}>{t.dress.allGone}</p>}
             {!allGone && dress.sizes.some((s) => (s.remaining ?? 0) <= 0) && (
-              <p className={styles.sizeNote}>줄 그어진 사이즈는 선택한 시간에 이미 예약됐어요.</p>
+              <p className={styles.sizeNote}>{t.dress.someGone}</p>
             )}
 
             <div className={btn.bottom} style={{ paddingTop: 36, paddingBottom: 64 }}>
               {size && (
                 <button type="button" className={btn.primary} onClick={next}>
-                  다음으로
+                  {t.common.next}
                 </button>
               )}
             </div>

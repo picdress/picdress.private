@@ -33,12 +33,20 @@ export default async function DressesAdmin({ searchParams }: { searchParams: Pro
               <input name="name" defaultValue={d.name} />
             </label>
             <label>
+              영어 이름
+              <input name="nameEn" defaultValue={d.nameEn ?? ""} />
+            </label>
+            <label>
+              중국어 이름
+              <input name="nameZh" defaultValue={d.nameZh ?? ""} />
+            </label>
+            <label>
               대여비(원)
               <input name="price" inputMode="numeric" defaultValue={d.price} />
             </label>
             <label>
-              PayPal 가격($)
-              <input name="priceUsd" inputMode="decimal" defaultValue={d.priceUsd ?? ""} placeholder="비우면 PayPal 숨김" />
+              해외결제 달러 가격($)
+              <input name="priceUsd" inputMode="decimal" defaultValue={d.priceUsd ?? ""} placeholder="해외결제를 달러로 받을 때만" />
             </label>
             <label>
               모델 착용 사이즈

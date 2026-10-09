@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { config } from "@/lib/config";
+import { getI18n } from "@/i18n/server";
 import styles from "./Footer.module.css";
 
 function PhoneIcon() {
@@ -27,19 +28,21 @@ function InstaIcon() {
   );
 }
 
-export default function Footer() {
+export default async function Footer() {
+  const { t, locale } = await getI18n();
   const b = config.business;
+  const phone = locale === "ko" ? b.phone : `+82 ${b.phone.replace(/^0/, "")}`;
   return (
     <footer className={styles.footer}>
       <div className={styles.info}>
-        <p>주소: 서울 서대문구 대현동 60-11 2층 000호</p>
-        <p>영업일: 2026/11/02(월) - 2026/11/13(금)</p>
-        <p>영업 시간: 10:00 - 18:00</p>
+        <p>{t.footer.address}</p>
+        <p>{t.footer.openDays}</p>
+        <p>{t.footer.hours}</p>
       </div>
       <div className={styles.contacts}>
         <a href={`tel:${b.phone.replace(/-/g, "")}`}>
           <PhoneIcon />
-          {b.phone}
+          {phone}
         </a>
         <a href={`mailto:${b.email}`}>
           <MailIcon />
@@ -52,10 +55,10 @@ export default function Footer() {
       </div>
 
       <nav className={styles.links}>
-        <Link href="/policy#terms">이용약관</Link>
-        <Link href="/policy#refund">취소·환불 규정</Link>
+        <Link href="/policy#terms">{t.footer.terms}</Link>
+        <Link href="/policy#refund">{t.footer.refund}</Link>
         <Link href="/policy#privacy">
-          <b>개인정보처리방침</b>
+          <b>{t.footer.privacy}</b>
         </Link>
       </nav>
       {(b.name || b.regNo) && (

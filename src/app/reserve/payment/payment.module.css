@@ -109,7 +109,6 @@
 
 .tileText {
   font-family: var(--font-body);
-  font-size: 18.4px;
   color: #000;
   white-space: nowrap;
 }
@@ -181,4 +180,32 @@
 
 .fatal p {
   margin: 0;
+}
+
+/* 국내 / 해외 결제 묶음 */
+.group + .group {
+  margin-top: 22px;
+}
+
+.groupTitle {
+  margin: 0 0 10px;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.tileText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  font-size: 16px;
+}
+
+.tileSub {
+  font-size: 9.5px;
+  font-weight: 400;
+  color: #555;
+  margin-top: 2px;
 }
