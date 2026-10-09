@@ -132,7 +132,7 @@ export async function mailDepositRequest(b: BookingView) {
       `${details(b, extra)}
       <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(tb.payWith, { method: label, amount })}</b></p>
       ${link ? button(link, fmt(tb.openLink, { method: label })) : ""}
-      <p style="font-size:13px;line-height:1.7">${fmt(tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
+      <p style="font-size:13px;line-height:1.7">${fmt(pm === "BANK" ? tb.bankNote : tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
       ${button(manageUrl(b), t.view)}`,
     ),
   );

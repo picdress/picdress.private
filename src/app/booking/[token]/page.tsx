@@ -10,6 +10,7 @@ import { dressName, errorText, fmt, longDate, money, shortDate, usd } from "@/i1
 import { getI18n } from "@/i18n/server";
 import CancelForm from "./CancelForm";
 import ClearReservation from "./ClearReservation";
+import CopyButton from "./CopyButton";
 import styles from "./booking.module.css";
 
 export const dynamic = "force-dynamic";
@@ -72,8 +73,10 @@ export default async function BookingPage({
               )}
               {b.paymentMethod === "BANK" && (
                 <div className={styles.bank}>
-                  <p>
-                    <b>{t.payment.bankAccount}</b> {config.bankAccount}
+                  <p className={styles.bankLine}>
+                    <b>{t.payment.bankAccount}</b>
+                    <span>{config.bankAccount}</span>
+                    <CopyButton text={config.bankAccount} label={tb.copy} done={tb.copied} />
                   </p>
                   <p>
                     <b>{t.payment.depositor}</b> {b.customerName}
@@ -85,7 +88,7 @@ export default async function BookingPage({
                   <b>{tb.deadline}</b> {fmt(tb.deadlineValue, { time: formatKst(b.holdExpiresAt) })}
                 </p>
               </div>
-              <p className={styles.small}>{fmt(tb.memoNote, { name: b.customerName })}</p>
+              <p className={styles.small}>{fmt(b.paymentMethod === "BANK" ? tb.bankNote : tb.memoNote, { name: b.customerName })}</p>
               <p className={styles.small}>{tb.checkNote}</p>
             </>
           )}
