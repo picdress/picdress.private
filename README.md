@@ -25,15 +25,15 @@
 
 1. **Supabase** (DB)
    - 새 프로젝트 만들기 (지역: Seoul)
-   - SQL Editor에서 `db/schema.sql` → `db/seed.sql` 순서로 붙여넣고 Run
-   - Project Settings → Database → Connection string → **Transaction pooler** 주소 복사 → `DATABASE_URL`
+   - 상단 **Connect** → **Transaction pooler** 주소 복사 → `[YOUR-PASSWORD]`를 프로젝트 비밀번호로 바꿔서 `DATABASE_URL`
+   - 테이블은 배포할 때 자동으로 만들어져요 (`db/schema.sql`, `db/seed.sql`)
 2. **토스페이먼츠** (결제)
    - 개발자센터에 이메일로 가입 → API 키 → **API 개별 연동 키**의 테스트 키(`test_ck_…`, `test_sk_…`) 복사
 3. **Gmail** (확인 메일)
    - picdress012@gmail.com 에서 2단계 인증 켜기 → 앱 비밀번호 만들기 → `GMAIL_APP_PASSWORD`
 4. **GitHub**에 이 폴더를 올리고 → **Vercel**에서 Import
 5. Vercel → Settings → Environment Variables에 `.env.example`의 값들을 채워 넣고 Deploy
-   - `SITE_URL`은 배포된 주소(예: `https://picdress.vercel.app`)
+   - `SITE_URL`은 비워두면 Vercel 기본 주소를 써요. 도메인을 따로 연결하면 그 주소를 넣어주세요.
    - `ADMIN_PASSWORD`, `SESSION_SECRET`은 길고 랜덤하게
    - `PAYMENT_MOCK`은 **비워두세요**
 

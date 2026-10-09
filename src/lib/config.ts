@@ -24,7 +24,11 @@ function parseRefundRules(raw: string): RefundRule[] {
 const env = process.env;
 
 export const config = {
-  siteUrl: (env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, ""),
+  // SITE_URL을 안 넣으면 Vercel이 알려주는 기본 주소(xxx.vercel.app)를 써요
+  siteUrl: (
+    env.SITE_URL ||
+    (env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
+  ).replace(/\/$/, ""),
 
   // 영업 일정
   openStart: env.OPEN_START ?? "2026-11-02",
