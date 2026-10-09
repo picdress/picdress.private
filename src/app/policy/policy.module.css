@@ -1,0 +1,41 @@
+.main {
+  padding: 8px 0 60px;
+}
+
+.main section {
+  background: var(--light);
+  margin-top: 16px;
+  padding: 24px 28px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  scroll-margin-top: calc(var(--header-h) + 8px);
+}
+
+.main h1 {
+  font-size: 17px;
+  margin: 0 0 12px;
+}
+
+.main ol,
+.main ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.main dl {
+  margin: 0;
+}
+
+.main dt {
+  font-family: var(--font-title);
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.main dd {
+  margin: 0;
+}
+
+.main p {
+  margin: 0;
+}

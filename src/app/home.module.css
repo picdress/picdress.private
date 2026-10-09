@@ -1,0 +1,188 @@
+/* 피그마 01_홈 (폭 402 기준) */
+
+.hero {
+  aspect-ratio: 402 / 607;
+  overflow: hidden;
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 사진 아래 꺾쇠 영역: 사진 끝(723) → ABOUT 시작(911) = 188 */
+.scrollHint {
+  display: flex;
+  justify-content: center;
+  height: 188px;
+  padding-top: 55px;
+}
+
+.block {
+  background: var(--light);
+  text-align: center;
+}
+
+.block h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 22px;
+  color: var(--dark);
+}
+
+.about {
+  padding: 46px 57px;
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
+
+.aboutText {
+  color: #000;
+  font-size: 14px;
+  line-height: normal;
+}
+
+.aboutText p {
+  margin: 0;
+}
+
+.aboutText p + p {
+  margin-top: 1.2em;
+}
+
+/* ABOUT 끝(1198) → TOUR PROGRAM(1258) = 60 */
+.program {
+  margin-top: 60px;
+  padding: 40px 57px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 33px;
+}
+
+.programBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.programItem {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  color: #000;
+  font-size: 14px;
+}
+
+.programImg {
+  width: 230px;
+  height: 167px;
+  object-fit: cover;
+}
+
+.plus {
+  margin: 0;
+  font-size: 30px;
+  line-height: 35px;
+  color: var(--dark);
+}
+
+/* 쿠폰 3장 겹치기 (피그마 Group 1: 176×114) */
+.coupons {
+  position: relative;
+  width: 176px;
+  height: 114.4px;
+}
+
+.coupons img {
+  position: absolute;
+  object-fit: cover;
+}
+
+.c2 {
+  left: 0;
+  top: 25.3px;
+  width: 142.5px;
+  height: 89.1px;
+}
+
+.c1 {
+  left: calc(9.66px + 3px);
+  top: calc(13.33px + 5px);
+  width: 142.2px;
+  height: 88.9px;
+  transform: rotate(4.1deg);
+}
+
+.c3 {
+  left: calc(21.15px + 6px);
+  top: calc(0px + 10.5px);
+  width: 142.8px;
+  height: 89.3px;
+  transform: rotate(8.86deg);
+}
+
+/* TOUR PROGRAM 끝 → 아코디언 사이 40 */
+.accordions {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.collection {
+  width: 271.35px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11.25px;
+}
+
+.collection img {
+  width: 100%;
+  aspect-ratio: 104 / 131;
+  object-fit: cover;
+}
+
+.partners {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 40px;
+}
+
+.partners li {
+  display: flex;
+  gap: 27px;
+  padding: 23px 42px;
+  color: #000;
+}
+
+.partners img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.partners p {
+  margin: 0;
+}
+
+.partners .title {
+  font-size: 16px;
+  line-height: 19px;
+  margin-bottom: 12px;
+}
+
+.partnerDesc {
+  font-size: 13px;
+  line-height: normal;
+  white-space: pre-line;
+}

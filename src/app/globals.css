@@ -1,0 +1,81 @@
+:root {
+  /* 피그마 스타일 */
+  --dark: #485542; /* 다크 그린 */
+  --green: #a2b798; /* 그린 */
+  --light: #f6faf4; /* 밝은배경 */
+  --bg: #e3e9e0; /* 어두운배경 */
+  --muted: #c1cbbc;
+  --line: #d3dbcf;
+  --danger: #b4533f;
+
+  --font-title: "Arita Buri KR", "Noto Serif KR", "AppleMyungjo", serif;
+  --font-body: "Eulyoo1945", "Noto Serif KR", "AppleMyungjo", serif;
+
+  --header-h: 72px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #d4dccf;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 440px;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--dark);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: normal;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.title {
+  font-family: var(--font-title);
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--dark);
+  outline-offset: 2px;
+}
+
+/* 관리자 화면은 PC에서 조금 넓게 */
+body:has([data-admin]) {
+  max-width: 820px;
+}

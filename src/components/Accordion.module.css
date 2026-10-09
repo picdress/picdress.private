@@ -1,0 +1,32 @@
+.section {
+  background: var(--light);
+}
+
+/* 피그마: 높이 82, 좌우 57 / 위아래 30, 제목과 꺾쇠 간격 20 */
+.head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 30px 57px;
+  border: 0;
+  background: none;
+  color: var(--dark);
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.panel[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+
+.inner {
+  overflow: hidden;
+}

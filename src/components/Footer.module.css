@@ -1,0 +1,57 @@
+/* 피그마 Frame 19: 높이 362, 내용은 왼쪽 43 / 위 77 */
+.footer {
+  position: relative;
+  min-height: 362px;
+  padding: 77px 43px 130px;
+  color: var(--dark);
+  font-size: 11.85px;
+}
+
+.info p {
+  margin: 0 0 6.5px;
+}
+
+.contacts {
+  margin-top: 29px;
+  display: flex;
+  flex-direction: column;
+  gap: 4.3px;
+}
+
+.contacts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.links {
+  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+}
+
+.links a {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.biz {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  opacity: 0.85;
+  max-width: 230px;
+}
+
+.logo {
+  position: absolute;
+  right: 38px;
+  bottom: 32px;
+  width: 97px;
+  height: 97px;
+  object-fit: cover;
+}

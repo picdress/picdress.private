@@ -1,0 +1,349 @@
+/* 02_예약 공통 */
+
+/* "예약자 정보" 제목 줄: 높이 57, 좌우 25 */
+.sectionTitle {
+  padding: 17.5px 25px;
+}
+
+.sectionTitle h1,
+.h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 22px;
+  color: var(--dark);
+}
+
+/* 입력 칸 블록: 높이 120, 라벨 왼쪽 37 */
+.field {
+  display: block;
+  background: var(--light);
+  padding: 25px 37px;
+  border-bottom: 2px solid var(--bg);
+}
+
+.field > span {
+  display: block;
+  font-size: 16px;
+  line-height: 19px;
+  margin-bottom: 10px;
+}
+
+.field input {
+  width: 100%;
+  height: 41px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 0 23px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--dark);
+}
+
+.field input::placeholder {
+  color: var(--dark);
+  opacity: 0.85;
+}
+
+.agree {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 18px 37px 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.agree input {
+  margin: 2px 0 0;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--dark);
+  flex-shrink: 0;
+}
+
+.agree a {
+  text-decoration: underline;
+}
+
+/* ───── 날짜·시간 ───── */
+
+.schedule {
+  padding: 24px 25px 0;
+  transition: padding-top 0.35s ease;
+}
+
+.schedule[data-empty="true"] {
+  padding-top: 204px; /* 피그마: 날짜만 있을 때 달력이 화면 가운데쯤 */
+}
+
+.blockTitle {
+  margin: 0 0 18px;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.calendar {
+  background: var(--light);
+  border-radius: 10px;
+  padding: 30px 34px;
+}
+
+.month {
+  margin: 0 0 11px;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekday {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.day {
+  height: 40px;
+  border: 0;
+  background: none;
+  border-radius: 31px;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 21.18px;
+  line-height: 22px;
+  color: var(--dark);
+  padding: 0;
+  max-width: 40px;
+  width: 100%;
+  justify-self: center;
+}
+
+.day:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.day[aria-pressed="true"] {
+  background: var(--dark);
+  color: var(--light);
+}
+
+.times {
+  padding: 24px 25px 0;
+}
+
+.timeGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.time {
+  height: 45px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--dark);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.time b {
+  font-family: var(--font-title);
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.time small {
+  font-family: var(--font-body);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.time[aria-pressed="true"] {
+  background: var(--dark);
+  color: #fff;
+}
+
+.time:disabled {
+  background: transparent;
+  border: 1px dashed var(--muted);
+  color: var(--muted);
+  cursor: default;
+}
+
+.loading {
+  padding: 30px 0;
+  text-align: center;
+  color: var(--dark);
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+.notice {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* ───── 드레스 목록 ───── */
+
+.pageTitle {
+  margin: 25px 0 28px;
+  text-align: center;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.dressList {
+  list-style: none;
+  margin: 0;
+  padding: 0 42px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dressCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px 40px;
+  border-radius: 20px;
+  background: var(--light);
+  text-decoration: none;
+  position: relative;
+}
+
+.dressCard img {
+  width: 100%;
+  aspect-ratio: 238 / 320;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.dressInfo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dressInfo .title {
+  font-size: 18px;
+  line-height: 22px;
+  margin: 0;
+}
+
+.dressMeta {
+  text-align: right;
+  font-size: 14px;
+  line-height: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.soldOut {
+  position: absolute;
+  inset: 30px 40px auto;
+  aspect-ratio: 238 / 320;
+  border-radius: 10px;
+  background: rgba(246, 250, 244, 0.72);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.dressCard[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+/* ───── 드레스 상세 / 사이즈 ───── */
+
+.detail {
+  background: var(--light);
+  text-align: center;
+}
+
+.detailName {
+  margin: 17px 0 0;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.detailPrice {
+  margin: 8px 0 20px;
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.detailImg {
+  width: 276px;
+  max-width: calc(100% - 50px);
+  aspect-ratio: 276 / 371;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0 auto;
+}
+
+.sizeTitle {
+  margin: 28px 0 15px;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.model {
+  margin: 0 0 15px;
+  font-size: 14px;
+  line-height: normal;
+}
+
+.sizes {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 25px;
+}
+
+.size {
+  width: 92px;
+  height: 37px;
+  border: 0;
+  border-radius: 60px;
+  background: var(--bg);
+  color: var(--dark);
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.size[aria-pressed="true"] {
+  background: var(--dark);
+  color: #fff;
+}
+
+.size:disabled {
+  color: var(--muted);
+  text-decoration: line-through;
+  cursor: default;
+}
+
+.sizeNote {
+  margin: 10px 0 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
