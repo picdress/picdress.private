@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHold, orderName } from "@/lib/bookings";
-import { config, paymentsReady } from "@/lib/config";
+import { config, manualMethods, paymentsReady, usdAmount } from "@/lib/config";
 import { clientIp, errorJson } from "@/lib/http";
 import { getLocale } from "@/i18n/server";
 
@@ -46,7 +46,8 @@ export async function POST(req: Request) {
         channelKr: config.portoneChannelKr || (mock ? "mock" : ""),
         channelGlobal: config.portoneChannelGlobal || (mock ? "mock" : ""),
         globalCurrency: config.globalCurrency,
-        bankAccount: config.bankAccount,
+        manualMethods: config.paymentMode === "manual" ? manualMethods() : [],
+        paypalUsd: usdAmount(b.amount, b.amountUsd),
         depositHours: config.depositHours,
         siteUrl: config.siteUrl,
       },

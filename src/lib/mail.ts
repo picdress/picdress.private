@@ -1,7 +1,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { config } from "./config";
+import { config, sendLink, type ManualMethod } from "./config";
 import type { BookingView } from "./bookings";
 import { dressName, fmt, getMessages, longDate, money, usd } from "@/i18n";
 import { formatKst } from "./time";
@@ -99,28 +99,59 @@ export async function mailConfirmed(b: BookingView) {
       ${button(manageUrl(b), t.manage)}`,
     ),
   );
-  await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${b.paymentMethod ?? ""})`, b);
+  await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${MANUAL_ADMIN[b.paymentMethod ?? ""] ?? b.paymentMethod ?? ""})`, b);
 }
 
 export async function mailDepositRequest(b: BookingView) {
-  const t = getMessages(b.locale).mail;
+  const all = getMessages(b.locale);
+  const t = all.mail;
+  const tb = all.booking;
+  const pm = (b.paymentMethod ?? "BANK") as ManualMethod;
+  const label = (all.payment.method as Record<string, string>)[pm] ?? pm;
+
+  if (pm === "ONSITE") {
+    await send(
+      b.email,
+      t.onsiteSubject,
+      layout(tb.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(tb.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${button(manageUrl(b), t.view)}`),
+    );
+    await notifyAdmin(`현장 결제 예약: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
+    return;
+  }
+
+  const amount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, b.locale);
+  const link = sendLink(pm, b.amount, b.amountUsd ?? "0");
   const extra =
-    row(t.rowBank, esc(config.bankAccount || "-")) +
-    row(t.rowDepositor, esc(b.customerName)) +
+    (pm === "BANK" ? row(t.rowBank, esc(config.bankAccount || "-")) + row(t.rowDepositor, esc(b.customerName)) : "") +
     row(t.rowDeadline, formatKst(b.holdExpiresAt));
   await send(
     b.email,
-    t.depositSubject,
-    layout(t.depositTitle, `${details(b, extra)}<p style="font-size:13px;line-height:1.7">${t.depositBody}</p>${button(manageUrl(b), t.view)}`),
+    t.paySubject,
+    layout(
+      tb.payTitle,
+      `${details(b, extra)}
+      <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(tb.payWith, { method: label, amount })}</b></p>
+      ${link ? button(link, fmt(tb.openLink, { method: label })) : ""}
+      <p style="font-size:13px;line-height:1.7">${fmt(tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
+      ${button(manageUrl(b), t.view)}`,
+    ),
   );
-  await notifyAdmin(`입금 대기: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
+  await notifyAdmin(`결제 대기 (${MANUAL_ADMIN[pm] ?? pm}): ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} — ${amount}`, b);
 }
+
+const MANUAL_ADMIN: Record<string, string> = {
+  TOSS_SEND: "토스 송금",
+  KAKAOPAY_SEND: "카카오페이 송금",
+  PAYPAL: "PayPal",
+  BANK: "계좌이체",
+  ONSITE: "현장 결제",
+};
 
 export async function mailCancelled(b: BookingView) {
   const t = getMessages(b.locale).mail;
   const refund =
     b.refundAmount > 0
-      ? `<p style="font-size:14px;line-height:1.7">${fmt(b.paymentMode === "manual" ? t.refundManual : t.refundOnline, { amount: money(b.refundAmount, b.locale) })}</p>`
+      ? `<p style="font-size:14px;line-height:1.7">${fmt(b.paymentMode === "manual" ? t.refundManual : t.refundOnline, { amount: b.refundUsd ? usd(b.refundUsd) : money(b.refundAmount, b.locale) })}</p>`
       : "";
   await send(b.email, t.cancelledSubject, layout(t.cancelledTitle, `${details(b)}${refund}`));
   await notifyAdmin(`예약 취소: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (환불 ${money(b.refundAmount, "ko")})`, b);

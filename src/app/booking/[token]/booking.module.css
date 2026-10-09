@@ -155,3 +155,11 @@
   font-size: 12px;
   opacity: 0.8;
 }
+
+.payLink {
+  margin: 16px 0 6px !important;
+}
+
+.payLink a {
+  font-size: 17px;
+}

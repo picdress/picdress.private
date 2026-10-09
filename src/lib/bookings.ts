@@ -1,11 +1,11 @@
 import { randomBytes } from "node:crypto";
 import { canBook } from "./availability";
-import { config } from "./config";
+import { config, manualMethods, usdAmount, type ManualMethod } from "./config";
 import { db, type Tx } from "./db";
 import { isLocale, type Locale } from "@/i18n/locales";
 import { mailCancelled, mailConfirmed, mailDepositRequest } from "./mail";
 import { cancelPayment, fetchPayment, METHOD_LABEL, PaymentApiError, type PaymentInfo } from "./portone";
-import { daysUntil, isSlotClosedByTime, isValidDate, isValidTime, shortDate } from "./time";
+import { daysUntil, isSlotClosedByTime, isValidDate, isValidTime, shortDate, slotStartAt } from "./time";
 
 export class BookingError extends Error {
   constructor(
@@ -93,6 +93,11 @@ function toView(r: Row) {
     cancelledAt: r.cancelled_at?.toISOString() ?? null,
     cancelledBy: r.cancelled_by,
     refundAmount: r.refund_amount,
+    /** PayPal(달러) 결제의 환불 달러 금액 */
+    refundUsd:
+      r.currency === "USD" && r.amount_usd && r.amount > 0
+        ? ((Number(r.amount_usd) * r.refund_amount) / r.amount).toFixed(2)
+        : null,
     refundReason: r.refund_reason,
     refundDoneAt: r.refund_done_at?.toISOString() ?? null,
     adminMemo: r.admin_memo,
@@ -324,10 +329,22 @@ export function isGlobalMethod(m: string) {
   return GLOBAL_METHODS.has(m);
 }
 
-// ───────────────────────── 무통장입금 ─────────────────────────
+// ───────────────────────── 송금·계좌이체·현장결제 (사업자 없이) ─────────────────────────
+// 고객이 결제수단을 골라 신청 → "결제 대기" → 관리자가 송금을 확인하면 예약 확정
 
-export async function submitDepositRequest(orderId: string) {
-  if (config.paymentMode !== "manual") throw new BookingError("NOT_MANUAL", "계좌이체 접수를 받지 않고 있어요.");
+export const MANUAL_LABEL: Record<string, string> = {
+  TOSS_SEND: "토스 송금",
+  KAKAOPAY_SEND: "카카오페이 송금",
+  PAYPAL: "PayPal",
+  BANK: "계좌이체",
+  ONSITE: "현장 결제",
+};
+
+export async function submitDepositRequest(orderId: string, method: string) {
+  if (config.paymentMode !== "manual" && !config.mockPayments)
+    throw new BookingError("NOT_MANUAL", "송금 신청을 받지 않고 있어요.");
+  const allowed = config.mockPayments ? ["TOSS_SEND", "KAKAOPAY_SEND", "PAYPAL", "BANK", "ONSITE"] : manualMethods();
+  if (!allowed.includes(method as ManualMethod)) throw new BookingError("INVALID_METHOD", "선택할 수 없는 결제 수단이에요.");
   const sql = db();
   const id = await sql.begin(async (tx) => {
     const found = await findBy(tx, "order_id", orderId);
@@ -340,12 +357,19 @@ export async function submitDepositRequest(orderId: string) {
       const check = await canBook(tx, { date: b.slot_date, time: b.slot_time, dressId: b.dress_id, size: b.dress_size }, b.id);
       if (!check.ok) throw new BookingError(check.reason, MESSAGES[check.reason], 409);
     }
+    // 송금 기한: 신청 후 N시간, 단 이용 시작 시각을 넘기지 않음. 현장결제는 이용 시작 시각까지 자리 유지
+    const start = slotStartAt(b.slot_date, b.slot_time);
+    const deadline =
+      method === "ONSITE" ? start : new Date(Math.min(Date.now() + config.depositHours * 3_600_000, start.getTime()));
+    const paypal = method === "PAYPAL";
     await tx`
-      update bookings set status = 'awaiting_deposit', payment_method = 'BANK',
-        hold_expires_at = now() + ${`${config.depositHours} hours`}::interval
+      update bookings set status = 'awaiting_deposit', payment_method = ${method},
+        hold_expires_at = ${deadline},
+        amount_usd = ${paypal ? usdAmount(b.amount, b.amount_usd) : b.amount_usd},
+        currency = ${paypal ? "USD" : "KRW"}
       where id = ${b.id}
     `;
-    await logEvent(tx, b.id, "deposit_requested", {});
+    await logEvent(tx, b.id, "payment_requested", { method });
     return b.id;
   });
   const view = toView((await findBy(sql, "id", id))!);
@@ -363,12 +387,12 @@ export async function confirmDeposit(bookingId: string) {
     const b = (await findBy(tx, "id", bookingId, true))!;
     if (b.status === "paid") return;
     if (b.status !== "awaiting_deposit" && b.status !== "expired")
-      throw new BookingError("INVALID_STATE", "입금 대기 중인 예약이 아니에요.");
+      throw new BookingError("INVALID_STATE", "결제 대기 중인 예약이 아니에요.");
     if (!b.hold_expires_at || b.hold_expires_at.getTime() <= Date.now() || b.status === "expired") {
       const check = await canBook(tx, { date: b.slot_date, time: b.slot_time, dressId: b.dress_id, size: b.dress_size }, b.id);
       if (!check.ok) throw new BookingError(check.reason, `입금 기한이 지나 그 사이 자리가 찼어요. (${MESSAGES[check.reason]})`, 409);
     }
-    await tx`update bookings set status = 'paid', paid_at = now(), payment_method = 'BANK' where id = ${b.id}`;
+    await tx`update bookings set status = 'paid', paid_at = now(), payment_method = coalesce(payment_method, 'BANK') where id = ${b.id}`;
     await logEvent(tx, b.id, "deposit_confirmed", {});
   });
   const view = toView((await findBy(sql, "id", bookingId))!);

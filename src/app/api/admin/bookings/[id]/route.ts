@@ -16,7 +16,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     let msg = "";
     if (action === "confirm-deposit") {
       await confirmDeposit(id);
-      msg = "입금 확인 → 예약 확정했어요. 고객에게 메일이 나갔어요.";
+      msg = "결제 확인 → 예약 확정했어요. 고객에게 확정 메일이 나갔어요.";
     } else if (action === "cancel") {
       const raw = String(form.get("refundAmount") ?? "").replace(/[^\d]/g, "");
       const refundAmount = raw === "" ? undefined : Number(raw);
@@ -25,7 +25,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       msg =
         b.refundAmount > 0
           ? b.paymentMode === "manual"
-            ? `취소했어요. ${b.refundAmount.toLocaleString()}원을 고객 계좌로 직접 송금한 뒤 '환불 송금 완료'를 눌러주세요.`
+            ? b.paymentMethod === "PAYPAL"
+              ? `취소했어요. PayPal 거래 내역에서 이 결제를 찾아 환불(Refund)한 뒤 '환불 송금 완료'를 눌러주세요. (환불액 $${b.refundUsd ?? "-"})`
+              : `취소했어요. ${b.refundAmount.toLocaleString()}원을 고객에게 직접 돌려보낸 뒤 '환불 송금 완료'를 눌러주세요.`
             : `취소하고 ${b.refundAmount.toLocaleString()}원 환불했어요.`
           : "취소했어요.";
     } else if (action === "refund-done") {

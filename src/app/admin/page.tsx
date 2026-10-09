@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { daySlots } from "@/lib/availability";
-import { listBookings, type BookingView } from "@/lib/bookings";
+import { listBookings, MANUAL_LABEL, type BookingView } from "@/lib/bookings";
 import { config } from "@/lib/config";
 import { db } from "@/lib/db";
 import { formatKst, longDate, openDates, shortDate, todayKst, won } from "@/lib/time";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 const STATUS: Record<string, { label: string; tone: string }> = {
   paid: { label: "확정", tone: "ok" },
-  awaiting_deposit: { label: "입금대기", tone: "warn" },
+  awaiting_deposit: { label: "결제대기", tone: "warn" },
   holding: { label: "결제중", tone: "muted" },
   cancelled: { label: "취소", tone: "bad" },
   expired: { label: "만료", tone: "muted" },
@@ -44,17 +44,17 @@ function BookingCard({ b, back }: { b: BookingView; back: string }) {
       </header>
       <p>
         {b.dressName} · <b>{b.dressSize}</b> · {b.currency === "USD" && b.amountUsd ? `$${b.amountUsd}` : won(b.amount)}
-        {b.paymentMethod ? ` · ${b.paymentMethod === "BANK" ? "무통장입금" : b.paymentMethod}` : ""}
+        {b.paymentMethod ? ` · ${MANUAL_LABEL[b.paymentMethod] ?? b.paymentMethod}` : ""}
       </p>
       <p className={styles.sub}>
         {b.email} · {b.orderId}
         {b.paidAt && ` · 결제 ${formatKst(b.paidAt)}`}
-        {b.status === "awaiting_deposit" && b.holdExpiresAt && ` · 입금기한 ${formatKst(b.holdExpiresAt)}`}
+        {b.status === "awaiting_deposit" && b.holdExpiresAt && (b.paymentMethod === "ONSITE" ? " · 현장 결제 예정" : ` · 송금 기한 ${formatKst(b.holdExpiresAt)}`)}
         {b.status === "holding" && b.holdExpiresAt && ` · ${formatKst(b.holdExpiresAt)}까지 결제 진행`}
       </p>
       {b.status === "cancelled" && (
         <p className={styles.sub}>
-          취소 {formatKst(b.cancelledAt)} ({b.cancelledBy === "customer" ? "고객" : "관리자"}) · 환불 {won(b.refundAmount)}
+          취소 {formatKst(b.cancelledAt)} ({b.cancelledBy === "customer" ? "고객" : "관리자"}) · 환불 {b.refundUsd ? `$${b.refundUsd}` : won(b.refundAmount)}
           {b.refundReason ? ` · ${b.refundReason}` : ""}
           {b.paymentMode === "manual" && b.refundAmount > 0 && (b.refundDoneAt ? " · 송금 완료" : " · 송금 필요")}
         </p>
@@ -65,8 +65,15 @@ function BookingCard({ b, back }: { b: BookingView; back: string }) {
           <form action={`/api/admin/bookings/${b.id}`} method="post">
             <input type="hidden" name="action" value="confirm-deposit" />
             <input type="hidden" name="back" value={back} />
-            <ConfirmButton className={styles.btnPrimary} message={`${b.customerName}님 입금(${won(b.amount)})을 확인했나요? 예약이 확정되고 메일이 나가요.`}>
-              입금 확인
+            <ConfirmButton
+              className={styles.btnPrimary}
+              message={
+                b.paymentMethod === "ONSITE"
+                  ? `${b.customerName}님에게 현장에서 ${won(b.amount)}을 받았나요? 예약이 확정 처리돼요.`
+                  : `${b.customerName}님이 ${MANUAL_LABEL[b.paymentMethod ?? ""] ?? "송금"}으로 ${b.currency === "USD" && b.amountUsd ? `$${b.amountUsd}` : won(b.amount)}을 보낸 걸 확인했나요? 예약이 확정되고 메일이 나가요.`
+              }
+            >
+              {b.paymentMethod === "ONSITE" ? "현장 결제 완료" : "결제 확인"}
             </ConfirmButton>
           </form>
         )}
@@ -161,7 +168,7 @@ export default async function AdminPage({
           <b>{won(revenue)}</b>
         </div>
         <div>
-          <span>입금 대기</span>
+          <span>결제 대기</span>
           <b>{waiting.length}건</b>
         </div>
         <div>

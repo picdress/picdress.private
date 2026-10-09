@@ -46,8 +46,11 @@ export const config = {
   dressBufferMinutes: int(env.DRESS_BUFFER_MINUTES, 0),
 
   // 결제
-  /** toss: 온라인 결제(포트원) / manual: 계좌이체(무통장입금) 후 관리자 확인 */
-  paymentMode: (env.PAYMENT_MODE === "manual" ? "manual" : "toss") as "toss" | "manual",
+  /**
+   * manual(기본): 사업자 없이 운영 — 토스·카카오페이 송금 링크, PayPal, (선택) 계좌이체·현장결제 → 관리자가 확인
+   * online: 사업자 등록 후 포트원 자동 결제 (토스페이먼츠·엑심베이)
+   */
+  paymentMode: (env.PAYMENT_MODE === "online" || env.PAYMENT_MODE === "toss" ? "toss" : "manual") as "toss" | "manual",
   /** 로컬 테스트용 모의 결제. 운영 서버에서는 절대 켜지 마세요. */
   mockPayments: env.PAYMENT_MOCK === "1",
   // 포트원 (https://admin.portone.io → 결제 연동)
@@ -62,9 +65,22 @@ export const config = {
   globalCurrency: (env.GLOBAL_CURRENCY === "USD" ? "USD" : "KRW") as "KRW" | "USD",
   /** 결제 화면에서 자리를 잡아두는 시간 */
   holdMinutes: int(env.HOLD_MINUTES, 10),
-  /** 무통장입금 모드에서 입금 기한 */
+  /** 송금 기한 (신청 후 몇 시간 안에 보내야 하는지) */
   depositHours: int(env.DEPOSIT_HOURS, 2),
+
+  // manual 모드 결제수단 — 값을 넣은 것만 결제 화면에 보여요
+  /** 토스아이디 링크 (예: https://toss.me/picdress). {amount}를 넣으면 금액이 채워진 링크로 바뀌어요 */
+  tossSendLink: env.TOSS_SEND_LINK ?? "",
+  /** 카카오페이 송금코드 링크 (카카오페이 앱 → 송금 → 송금코드 → 링크 복사) */
+  kakaoSendLink: env.KAKAOPAY_SEND_LINK ?? "",
+  /** PayPal.Me 링크 (예: https://paypal.me/picdress) — 달러 금액이 자동으로 붙어요 */
+  paypalLink: env.PAYPAL_LINK ?? "",
+  /** 계좌이체 (예: 국민은행 000-000 (예금주 홍길동)) */
   bankAccount: env.BANK_ACCOUNT ?? "",
+  /** 1이면 '현장 결제(현금)' 선택지 표시 */
+  onsitePayment: env.ONSITE_PAYMENT === "1",
+  /** 드레스에 달러 가격이 없을 때 PayPal 금액 계산용 환율 (1달러 = 몇 원) */
+  krwPerUsd: int(env.KRW_PER_USD, 1400),
 
   // 환불 규정 "남은일수:환불%" (이용일 기준). 기본: 3일 전 100%, 1일 전 50%, 당일 0%
   refundRules: parseRefundRules(env.REFUND_RULES ?? "3:100,1:50,0:0"),
@@ -91,7 +107,39 @@ export const config = {
   },
 } as const;
 
+export type ManualMethod = "TOSS_SEND" | "KAKAOPAY_SEND" | "PAYPAL" | "BANK" | "ONSITE";
+
+/** manual 모드에서 켜진 결제수단 */
+export function manualMethods(): ManualMethod[] {
+  const out: ManualMethod[] = [];
+  if (config.tossSendLink) out.push("TOSS_SEND");
+  if (config.kakaoSendLink) out.push("KAKAOPAY_SEND");
+  if (config.paypalLink) out.push("PAYPAL");
+  if (config.bankAccount) out.push("BANK");
+  if (config.onsitePayment) out.push("ONSITE");
+  return out;
+}
+
+/** PayPal로 받을 달러 금액: 드레스 달러 가격이 있으면 그것, 없으면 환율로 계산 (1달러 단위 올림) */
+export function usdAmount(krw: number, priceUsd: string | null | undefined) {
+  if (priceUsd && Number(priceUsd) > 0) return Number(priceUsd).toFixed(2);
+  return Math.ceil(krw / config.krwPerUsd).toFixed(2);
+}
+
+/** 송금 링크 만들기 */
+export function sendLink(method: ManualMethod, krw: number, usd: string) {
+  if (method === "TOSS_SEND") return config.tossSendLink.replace("{amount}", String(krw));
+  if (method === "KAKAOPAY_SEND") return config.kakaoSendLink.replace("{amount}", String(krw));
+  if (method === "PAYPAL") {
+    const base = config.paypalLink.replace(/\/$/, "");
+    if (base.includes("{amount}")) return base.replace("{amount}", usd);
+    return /paypal\.me\//i.test(base) ? `${base}/${usd}USD` : base;
+  }
+  return "";
+}
+
 export function paymentsReady() {
-  if (config.paymentMode === "manual" || config.mockPayments) return true;
+  if (config.mockPayments) return true;
+  if (config.paymentMode === "manual") return manualMethods().length > 0;
   return Boolean(config.portoneStoreId && config.portoneApiSecret && (config.portoneChannelKr || config.portoneChannelGlobal));
 }

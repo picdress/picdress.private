@@ -27,13 +27,32 @@ type Hold = {
     channelKr: string;
     channelGlobal: string;
     globalCurrency: "KRW" | "USD";
-    bankAccount: string;
+    manualMethods: string[];
+    paypalUsd: string;
     depositHours: number;
     siteUrl: string;
   };
 };
 
-type Method = "TOSSPAY" | "KAKAOPAY" | "TRANSFER" | "CARD" | "ALIPAY" | "WECHAT" | "UNIONPAY" | "INTL_CARD" | "PAYPAL";
+type Method =
+  | "TOSSPAY"
+  | "KAKAOPAY"
+  | "TRANSFER"
+  | "CARD"
+  | "ALIPAY"
+  | "WECHAT"
+  | "UNIONPAY"
+  | "INTL_CARD"
+  | "PAYPAL"
+  // 사업자 없이 받는 방식 (송금 링크·계좌·현장)
+  | "TOSS_SEND"
+  | "KAKAOPAY_SEND"
+  | "BANK"
+  | "ONSITE";
+
+const MANUAL_KO: Method[] = ["TOSS_SEND", "KAKAOPAY_SEND", "BANK", "PAYPAL", "ONSITE"];
+const MANUAL_GLOBAL: Method[] = ["PAYPAL", "ONSITE"];
+const MANUAL_KR: Method[] = ["TOSS_SEND", "KAKAOPAY_SEND", "BANK"];
 
 const KR_METHODS: Method[] = ["TOSSPAY", "KAKAOPAY", "TRANSFER", "CARD"];
 const GLOBAL_METHODS: Record<Locale, Method[]> = {
@@ -63,6 +82,8 @@ function eximbayCode(m: Method) {
 const TILE_LOOK: Partial<Record<Method, { img?: string; imgW?: number; color?: string }>> = {
   TOSSPAY: { img: "/images/pay/tosspay.png", imgW: 101 },
   KAKAOPAY: { img: "/images/pay/kakaopay.png", imgW: 56 },
+  TOSS_SEND: { img: "/images/pay/tosspay.png", imgW: 101 },
+  KAKAOPAY_SEND: { img: "/images/pay/kakaopay.png", imgW: 56 },
   PAYPAL: { img: "/images/pay/paypal.png", imgW: 93 },
   ALIPAY: { color: "#1677ff" },
   WECHAT: { color: "#07a35a" },
@@ -116,7 +137,6 @@ export default function PaymentPage() {
       }
       setHold(data);
       update({ orderId: data.orderId });
-      if (data.payment.mode === "manual") setMethod("TRANSFER");
     } catch {
       setFatal({ message: t.errors.NETWORK, back: "/reserve/payment" });
     }
@@ -156,7 +176,17 @@ export default function PaymentPage() {
   const globalGroup = hold?.payment.channelGlobal
     ? GLOBAL_METHODS[locale].filter(() => !usdGlobal || Boolean(hold?.amountUsd))
     : [];
-  const groups: { title: string; methods: Method[] }[] = (
+  const mm = (hold?.payment.manualMethods ?? []) as Method[];
+  const manualGroups: { title: string; methods: Method[] }[] = (
+    locale === "ko"
+      ? [{ title: t.payment.methods, methods: MANUAL_KO.filter((m) => mm.includes(m)) }]
+      : [
+          { title: t.payment.groupGlobal, methods: MANUAL_GLOBAL.filter((m) => mm.includes(m)) },
+          { title: t.payment.groupKrAccounts, methods: MANUAL_KR.filter((m) => mm.includes(m)) },
+        ]
+  ).filter((g) => g.methods.length > 0);
+
+  const onlineGroups: { title: string; methods: Method[] }[] = (
     locale === "ko"
       ? [
           { title: t.payment.groupKr, methods: krGroup },
@@ -167,6 +197,7 @@ export default function PaymentPage() {
           { title: t.payment.groupKr, methods: krGroup },
         ]
   ).filter((g) => g.methods.length > 0);
+  const groups = manual ? manualGroups : onlineGroups;
 
   async function pay() {
     if (!hold) return;
@@ -179,7 +210,7 @@ export default function PaymentPage() {
         const res = await fetch("/api/bookings/deposit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderId: hold.orderId }),
+          body: JSON.stringify({ orderId: hold.orderId, method }),
         });
         const data = await res.json();
         if (!res.ok) throw Object.assign(new Error(data.message), { code: data.error });
@@ -308,25 +339,7 @@ export default function PaymentPage() {
 
         <section className={styles.methods}>
           <h2 className={`title ${styles.methodsTitle}`}>{t.payment.methods}</h2>
-          {manual ? (
-            <>
-              <div className={styles.grid}>
-                <button type="button" className={styles.tile} aria-pressed>
-                  <span className={styles.tileText}>{t.payment.method.TRANSFER}</span>
-                </button>
-              </div>
-              <div className={styles.bank}>
-                <p>
-                  <b>{t.payment.bankAccount}</b> {hold?.payment.bankAccount || t.payment.preparing}
-                </p>
-                <p>
-                  <b>{t.payment.depositor}</b> {hold?.customer.name}
-                </p>
-                <p>{fmt(t.payment.depositNotice, { hours: hold?.payment.depositHours ?? "" })}</p>
-              </div>
-            </>
-          ) : (
-            groups.map((g) => (
+          {groups.map((g) => (
               <div key={g.title} className={styles.group}>
                 {groups.length > 1 && <p className={styles.groupTitle}>{g.title}</p>}
                 <div className={styles.grid} role="radiogroup" aria-label={g.title}>
@@ -359,9 +372,17 @@ export default function PaymentPage() {
                   })}
                 </div>
               </div>
-            ))
+            ))}
+          {manual && (
+            <p className={styles.usd}>
+              {method === "PAYPAL" && hold
+                ? fmt(t.payment.paypalAmount, { amount: usd(hold.payment.paypalUsd) })
+                : method === "ONSITE"
+                  ? t.payment.onsiteNote
+                  : t.payment.manualNote}
+            </p>
           )}
-          {method && IS_GLOBAL.has(method) && (
+          {!manual && method && IS_GLOBAL.has(method) && (
             <p className={styles.usd}>
               {usdGlobal && hold?.amountUsd
                 ? fmt(t.payment.globalNoteUsd, { amount: usd(hold.amountUsd) })

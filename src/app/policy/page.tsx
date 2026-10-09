@@ -123,9 +123,42 @@ const TEXT = {
   },
 };
 
+const MANUAL_TEXT = {
+  ko: {
+    refund2: "결제하신 방법(토스·카카오페이 송금, PayPal, 계좌이체)으로 운영자가 직접 돌려드리며, 확인 후 영업일 기준 3일 이내에 처리합니다.",
+    refund3: "PayPal로 결제한 경우 PayPal 환불로 처리되며, 환율·PayPal 정책에 따라 실제 환불액이 달라질 수 있습니다.",
+    processors: "토스·카카오페이(송금 수취), PayPal(해외 결제 수취), Google(예약 안내 메일 발송), 호스팅·DB 업체(서비스 운영)",
+    abroad: "PayPal로 결제하는 경우 결제 정보가 PayPal(해외)에서 처리됩니다.",
+  },
+  en: {
+    refund2: "Refunds are sent back by the Operator the same way you paid (Toss/KakaoPay transfer, PayPal or bank transfer), within 3 business days of confirmation.",
+    refund3: "PayPal payments are refunded through PayPal; the final amount may differ due to exchange rates and PayPal's policies.",
+    processors: "Toss and KakaoPay (receiving transfers), PayPal (international payments), Google (email), hosting and database providers (service operation)",
+    abroad: "If you pay with PayPal, your payment information is processed by PayPal outside Korea.",
+  },
+  zh: {
+    refund2: "退款将由运营方按您的付款方式（Toss/KakaoPay 转账、PayPal 或银行转账）原路退回，确认后3个工作日内处理。",
+    refund3: "通过 PayPal 付款的订单将经 PayPal 退款，实际退款金额可能因汇率及 PayPal 政策而不同。",
+    processors: "Toss、KakaoPay（收款），PayPal（国际支付收款），Google（邮件发送），主机及数据库服务商（服务运营）",
+    abroad: "使用 PayPal 付款时，支付信息将由境外的 PayPal 处理。",
+  },
+};
+
 export default async function PolicyPage() {
   const { locale } = await getI18n();
-  const x = TEXT[locale];
+  const base = TEXT[locale];
+  const manual = config.paymentMode === "manual";
+  const m = MANUAL_TEXT[locale];
+  const x = manual
+    ? {
+        ...base,
+        refundExtra: (cutoff: number) => {
+          const items = base.refundExtra(cutoff);
+          return [items[0], m.refund2, m.refund3, items[3]];
+        },
+        privacyRows: base.privacyRows.map(([k, v], i) => (i === 3 ? [k, m.processors] : i === 4 ? [k, m.abroad] : [k, v])),
+      }
+    : base;
   const b = config.business;
   const operator = b.name || "pic.dress";
   const contact = `${b.email} · ${locale === "ko" ? b.phone : `+82 ${b.phone.replace(/^0/, "")}`}`;
