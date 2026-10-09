@@ -40,7 +40,7 @@
    - 상단 **Connect** → **Transaction pooler** 주소 복사 → `[YOUR-PASSWORD]`를 프로젝트 비밀번호로 바꿔서 `DATABASE_URL`
    - 테이블은 배포할 때 자동으로 만들어져요 (`db/schema.sql`, `db/seed.sql`)
 2. **결제 링크** (지금 방식)
-   - 토스 앱 → 토스아이디 링크 → `TOSS_SEND_LINK`
+   - 토스 → 따로 할 것 없음. `BANK_ACCOUNT`(아래)를 넣으면 '토스 송금' 버튼이 우리 계좌·금액이 채워진 토스 송금 화면을 열어요 (휴대폰 토스 앱)
    - 카카오페이 앱 → 송금 → 송금코드 링크 → `KAKAOPAY_SEND_LINK`
    - PayPal → PayPal.Me 링크 만들기 → `PAYPAL_LINK`
    - 계좌이체 → `BANK_ACCOUNT`에 `은행 계좌번호 (예금주 이름)` 형태로 (예약 화면에 복사 버튼이 붙어요)

@@ -8,6 +8,14 @@ export function fmt(template: string, vars: Record<string, string | number> = {}
   return template.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? String(vars[k]) : `{${k}}`));
 }
 
+/** 한국어 조사 '로/으로' 붙이기 (받침이 있으면 '으로', 없거나 ㄹ 받침이면 '로') */
+export function withRo(word: string) {
+  const c = word.charCodeAt(word.length - 1);
+  if (c < 0xac00 || c > 0xd7a3) return `${word}로`;
+  const jong = (c - 0xac00) % 28;
+  return jong === 0 || jong === 8 ? `${word}로` : `${word}으로`;
+}
+
 /** 서버 오류 코드 → 현재 언어 문구 (없으면 서버가 준 문구) */
 export function errorText(t: Messages, code: string | undefined | null, fallback?: string) {
   if (code && t.errors[code]) return t.errors[code];

@@ -6,7 +6,7 @@ import btn from "@/components/Button.module.css";
 import { formatPhone, getBookingByToken, refundQuote } from "@/lib/bookings";
 import { config, sendLink, type ManualMethod } from "@/lib/config";
 import { formatKst, isSlotClosedByTime } from "@/lib/time";
-import { dressName, errorText, fmt, longDate, money, shortDate, usd } from "@/i18n";
+import { dressName, errorText, fmt, longDate, money, shortDate, usd, withRo } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import CancelForm from "./CancelForm";
 import ClearReservation from "./ClearReservation";
@@ -41,6 +41,8 @@ export default async function BookingPage({
   const methodLabel = (t.payment.method as Record<string, string>)[pm] ?? pm;
   const payAmount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, locale);
   const link = b.status === "awaiting_deposit" ? sendLink(pm, b.amount, b.amountUsd ?? "0") : "";
+  // 계좌로 받는 방식(계좌이체, 계좌 기반 토스 송금)은 계좌번호도 보여줘요
+  const showsAccount = pm === "BANK" || (pm === "TOSS_SEND" && !config.tossSendLink && Boolean(config.bankAccount));
 
   return (
     <>
@@ -63,15 +65,20 @@ export default async function BookingPage({
           {b.status === "awaiting_deposit" && b.paymentMethod !== "ONSITE" && (
             <>
               <p className={`title ${styles.big}`}>{tb.payTitle}</p>
-              <p>{fmt(tb.payWith, { method: methodLabel, amount: payAmount })}</p>
+              <p>{fmt(tb.payWith, { method: methodLabel, methodRo: withRo(methodLabel), amount: payAmount })}</p>
               {link && (
                 <p className={styles.payLink}>
-                  <a href={link} target="_blank" rel="noreferrer" className={`${btn.primary} ${btn.wide}`}>
-                    {fmt(tb.openLink, { method: methodLabel })}
+                  <a
+                    href={link}
+                    {...(/^https?:/.test(link) ? { target: "_blank", rel: "noreferrer" } : {})}
+                    className={`${btn.primary} ${btn.wide}`}
+                  >
+                    {fmt(tb.openLink, { method: methodLabel, methodRo: withRo(methodLabel) })}
                   </a>
                 </p>
               )}
-              {b.paymentMethod === "BANK" && (
+              {showsAccount && link.startsWith("supertoss:") && <p className={styles.small}>{tb.tossHint}</p>}
+              {showsAccount && (
                 <div className={styles.bank}>
                   <p className={styles.bankLine}>
                     <b>{t.payment.bankAccount}</b>
@@ -88,7 +95,7 @@ export default async function BookingPage({
                   <b>{tb.deadline}</b> {fmt(tb.deadlineValue, { time: formatKst(b.holdExpiresAt) })}
                 </p>
               </div>
-              <p className={styles.small}>{fmt(b.paymentMethod === "BANK" ? tb.bankNote : tb.memoNote, { name: b.customerName })}</p>
+              <p className={styles.small}>{fmt(showsAccount ? tb.bankNote : tb.memoNote, { name: b.customerName })}</p>
               <p className={styles.small}>{tb.checkNote}</p>
             </>
           )}

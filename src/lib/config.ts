@@ -69,7 +69,7 @@ export const config = {
   depositHours: int(env.DEPOSIT_HOURS, 2),
 
   // manual 모드 결제수단 — 값을 넣은 것만 결제 화면에 보여요
-  /** 토스아이디 링크 (예: https://toss.me/picdress). {amount}를 넣으면 금액이 채워진 링크로 바뀌어요 */
+  /** (선택) 토스 송금에 쓸 다른 링크. 비워두면 BANK_ACCOUNT로 토스 송금 화면 링크를 만들어요 */
   tossSendLink: env.TOSS_SEND_LINK ?? "",
   /** 카카오페이 송금코드 링크 (카카오페이 앱 → 송금 → 송금코드 → 링크 복사) */
   kakaoSendLink: env.KAKAOPAY_SEND_LINK ?? "",
@@ -112,12 +112,43 @@ export type ManualMethod = "TOSS_SEND" | "KAKAOPAY_SEND" | "PAYPAL" | "BANK" | "
 /** manual 모드에서 켜진 결제수단 */
 export function manualMethods(): ManualMethod[] {
   const out: ManualMethod[] = [];
-  if (config.tossSendLink) out.push("TOSS_SEND");
+  if (config.tossSendLink || bankParts()) out.push("TOSS_SEND");
   if (config.kakaoSendLink) out.push("KAKAOPAY_SEND");
   if (config.paypalLink) out.push("PAYPAL");
   if (config.bankAccount) out.push("BANK");
   if (config.onsitePayment) out.push("ONSITE");
   return out;
+}
+
+/** BANK_ACCOUNT("국민은행 123456-01-234567 (예금주 홍길동)")에서 은행 이름과 계좌번호(숫자만)를 뽑아요 */
+export function bankParts(): { bank: string; accountNo: string } | null {
+  const raw = config.bankAccount.trim();
+  const m = raw.match(/\d[\d\s-]{5,}\d/);
+  if (!m) return null;
+  const accountNo = m[0].replace(/\D/g, "");
+  const words = (t: string) => t.replace(/[()（）:：,]/g, " ").trim().split(/\s+/).filter(Boolean);
+  const name = words(raw.slice(0, m.index)).pop() ?? words(raw.slice((m.index ?? 0) + m[0].length))[0] ?? "";
+  const bank = normalizeBank(name);
+  return bank ? { bank, accountNo } : null;
+}
+
+const BANK_ALIASES: [RegExp, string][] = [
+  [/카카오/, "카카오뱅크"],
+  [/토스/, "토스뱅크"],
+  [/케이뱅크|^k뱅크/i, "케이뱅크"],
+  [/국민|^kb/i, "국민"],
+  [/농협|^nh/i, "농협"],
+  [/기업|^ibk/i, "기업"],
+  [/하나|^keb/i, "하나"],
+  [/sc|제일/i, "SC제일"],
+  [/새마을/, "새마을"],
+  [/아이엠|^im|대구/i, "대구"],
+  [/씨티|citi/i, "씨티"],
+];
+
+function normalizeBank(name: string) {
+  for (const [re, v] of BANK_ALIASES) if (re.test(name)) return v;
+  return name.replace(/은행$/, "");
 }
 
 /** PayPal로 받을 달러 금액: 드레스 달러 가격이 있으면 그것, 없으면 환율로 계산 (1달러 단위 올림) */
@@ -128,7 +159,14 @@ export function usdAmount(krw: number, priceUsd: string | null | undefined) {
 
 /** 송금 링크 만들기 */
 export function sendLink(method: ManualMethod, krw: number, usd: string) {
-  if (method === "TOSS_SEND") return config.tossSendLink.replace("{amount}", String(krw));
+  if (method === "TOSS_SEND") {
+    if (config.tossSendLink) return config.tossSendLink.replace("{amount}", String(krw));
+    // 토스아이디 송금은 2024년에 종료돼서, 우리 계좌·금액이 채워진 토스 송금 화면을 바로 열어요 (휴대폰 토스 앱)
+    const b = bankParts();
+    if (!b) return "";
+    const q = new URLSearchParams({ bank: b.bank, accountNo: b.accountNo, amount: String(krw) });
+    return `supertoss://send?${q}`;
+  }
   if (method === "KAKAOPAY_SEND") return config.kakaoSendLink.replace("{amount}", String(krw));
   if (method === "PAYPAL") {
     const base = config.paypalLink.replace(/\/$/, "");

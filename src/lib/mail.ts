@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { config, sendLink, type ManualMethod } from "./config";
 import type { BookingView } from "./bookings";
-import { dressName, fmt, getMessages, longDate, money, usd } from "@/i18n";
+import { dressName, fmt, getMessages, longDate, money, usd, withRo } from "@/i18n";
 import { formatKst } from "./time";
 
 // Gmail(picdress012@gmail.com) + 앱 비밀번호로 발송해요.
@@ -24,7 +24,7 @@ async function send(to: string, subject: string, html: string) {
   const t = getTransport();
   if (!t) {
     console.log(`[메일 미설정] to=${to} subject=${subject}`);
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "production" || process.env.MAIL_OUTBOX) {
       const dir = join(process.cwd(), ".outbox");
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, `${Date.now()}-${to.replace(/[^a-z0-9]/gi, "_")}.html`), `<!-- ${subject} -->\n${html}`);
@@ -121,8 +121,9 @@ export async function mailDepositRequest(b: BookingView) {
 
   const amount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, b.locale);
   const link = sendLink(pm, b.amount, b.amountUsd ?? "0");
+  const showsAccount = pm === "BANK" || (pm === "TOSS_SEND" && !config.tossSendLink && Boolean(config.bankAccount));
   const extra =
-    (pm === "BANK" ? row(t.rowBank, esc(config.bankAccount || "-")) + row(t.rowDepositor, esc(b.customerName)) : "") +
+    (showsAccount ? row(t.rowBank, esc(config.bankAccount || "-")) + row(t.rowDepositor, esc(b.customerName)) : "") +
     row(t.rowDeadline, formatKst(b.holdExpiresAt));
   await send(
     b.email,
@@ -130,9 +131,9 @@ export async function mailDepositRequest(b: BookingView) {
     layout(
       tb.payTitle,
       `${details(b, extra)}
-      <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(tb.payWith, { method: label, amount })}</b></p>
-      ${link ? button(link, fmt(tb.openLink, { method: label })) : ""}
-      <p style="font-size:13px;line-height:1.7">${fmt(pm === "BANK" ? tb.bankNote : tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
+      <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(tb.payWith, { method: label, methodRo: withRo(label), amount })}</b></p>
+      ${/^https?:/.test(link) ? button(link, fmt(tb.openLink, { method: label, methodRo: withRo(label) })) : ""}
+      <p style="font-size:13px;line-height:1.7">${fmt(showsAccount ? tb.bankNote : tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
       ${button(manageUrl(b), t.view)}`,
     ),
   );
