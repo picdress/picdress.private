@@ -291,7 +291,7 @@ export default function PaymentPage() {
   if (fatal) {
     return (
       <>
-        <Header back />
+        <Header back="/reserve/dress" />
         <div className={btn.page}>
           <div className={styles.fatal}>
             <p className="title">{t.payment.fatalTitle}</p>
@@ -311,7 +311,7 @@ export default function PaymentPage() {
 
   return (
     <>
-      <Header back />
+      <Header back="/reserve/dress" />
       <div className={btn.page}>
         <section className={styles.summary}>
           <div className={styles.rows}>

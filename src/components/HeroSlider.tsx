@@ -10,7 +10,7 @@ export default function HeroSlider({ images, alt, label }: { images: string[]; a
   useEffect(() => {
     if (images.length < 2) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % images.length), 4500);
+    const timer = setInterval(() => setIndex((i) => (i + 1) % images.length), 3000);
     return () => clearInterval(timer);
   }, [images.length, index]);
 

@@ -31,7 +31,7 @@ export default function DressListPage() {
 
   return (
     <>
-      <Header back />
+      <Header back="/reserve/schedule" />
       <main>
         <h1 className={`title ${styles.pageTitle}`}>{t.dress.title}</h1>
         {error && <p className={styles.loading}>{error}</p>}

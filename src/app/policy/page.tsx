@@ -164,7 +164,7 @@ export default async function PolicyPage() {
   const contact = `${b.email} · ${locale === "ko" ? b.phone : `+82 ${b.phone.replace(/^0/, "")}`}`;
   return (
     <>
-      <Header back />
+      <Header back="/" />
       <main className={styles.main}>
         <section id="terms">
           <h1 className="title">{x.terms}</h1>

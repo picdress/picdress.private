@@ -45,7 +45,7 @@ export default function InfoPage() {
 
   return (
     <>
-      <Header back />
+      <Header back="/" />
       <form className={btn.page} onSubmit={next} noValidate>
         <div className={styles.sectionTitle}>
           <h1 className="title">{t.info.title}</h1>

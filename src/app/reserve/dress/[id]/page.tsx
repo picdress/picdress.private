@@ -46,7 +46,7 @@ export default function DressDetailPage() {
 
   return (
     <>
-      <Header back />
+      <Header back="/reserve/dress" />
       <div className={`${btn.page} ${styles.detail}`}>
         {!dress ? (
           <p className={styles.loading}>{error || t.common.loading}</p>

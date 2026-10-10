@@ -113,7 +113,7 @@ export type ManualMethod = "TOSS_SEND" | "KAKAOPAY_SEND" | "PAYPAL" | "BANK" | "
 export function manualMethods(): ManualMethod[] {
   const out: ManualMethod[] = [];
   if (config.tossSendLink || bankParts()) out.push("TOSS_SEND");
-  if (config.kakaoSendLink || kakaoBankCode()) out.push("KAKAOPAY_SEND");
+  if (config.kakaoSendLink || bankParts()) out.push("KAKAOPAY_SEND");
   if (config.paypalLink) out.push("PAYPAL");
   if (config.bankAccount) out.push("BANK");
   if (config.onsitePayment) out.push("ONSITE");
@@ -121,44 +121,52 @@ export function manualMethods(): ManualMethod[] {
 }
 
 /** BANK_ACCOUNT("국민은행 123456-01-234567 (예금주 홍길동)")에서 은행 이름과 계좌번호(숫자만)를 뽑아요 */
-export function bankParts(): { bank: string; accountNo: string } | null {
+export function bankParts(): { bank: string; accountNo: string; kakaoCode: string } | null {
   const raw = config.bankAccount.trim();
   const m = raw.match(/\d[\d\s-]{5,}\d/);
   if (!m) return null;
   const accountNo = m[0].replace(/\D/g, "");
-  const words = (t: string) => t.replace(/[()（）:：,]/g, " ").trim().split(/\s+/).filter(Boolean);
-  const name = words(raw.slice(0, m.index)).pop() ?? words(raw.slice((m.index ?? 0) + m[0].length))[0] ?? "";
-  const bank = normalizeBank(name);
-  return bank ? { bank, accountNo } : null;
+  // 계좌번호를 뺀 나머지 단어에서 은행 이름을 찾아요 ("국민은행 (예금주 홍길동) 123-..." 같은 형식도 OK)
+  const words = (raw.slice(0, m.index) + " " + raw.slice((m.index ?? 0) + m[0].length))
+    .replace(/[()（）\[\]:：,/]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  const likely = words.filter((w) => /은행|뱅크|금고|우체국|신협|수협|농협|bank/i.test(w));
+  for (const w of [...likely, ...words]) {
+    const hit = BANKS.find((b) => b.re.test(w));
+    if (hit) return { bank: hit.name, accountNo, kakaoCode: hit.kakao };
+  }
+  // 은행 이름을 못 찾아도 계좌번호는 있으니 송금 버튼은 보여줘요 (앱에서 은행만 직접 고르면 돼요)
+  return { bank: "", accountNo, kakaoCode: "" };
 }
 
-const BANK_ALIASES: [RegExp, string][] = [
-  [/카카오/, "카카오뱅크"],
-  [/토스/, "토스뱅크"],
-  [/케이뱅크|^k뱅크/i, "케이뱅크"],
-  [/국민|^kb/i, "국민"],
-  [/농협|^nh/i, "농협"],
-  [/기업|^ibk/i, "기업"],
-  [/하나|외환|^keb/i, "하나"],
-  [/sc|제일/i, "SC제일"],
-  [/새마을/, "새마을"],
-  [/아이엠|^im|대구/i, "대구"],
-  [/씨티|citi/i, "씨티"],
-  [/산업|^kdb/i, "산업"],
+// 은행 이름 → 토스 송금 화면용 이름 + 카카오페이 계좌송금 앱링크 금융기관 코드 (카카오페이 가이드 기준)
+const BANKS: { re: RegExp; name: string; kakao: string }[] = [
+  { re: /카카오/, name: "카카오뱅크", kakao: "090" },
+  { re: /토스/, name: "토스뱅크", kakao: "092" },
+  { re: /케이뱅크|^k ?뱅크|^kbank/i, name: "케이뱅크", kakao: "089" },
+  { re: /국민|^kb/i, name: "국민", kakao: "004" },
+  { re: /농협|^nh/i, name: "농협", kakao: "011" },
+  { re: /신한|shinhan/i, name: "신한", kakao: "088" },
+  { re: /우리|woori/i, name: "우리", kakao: "020" },
+  { re: /하나|외환|^keb|hana/i, name: "하나", kakao: "081" },
+  { re: /기업|^ibk/i, name: "기업", kakao: "003" },
+  { re: /제일|^sc/i, name: "SC제일", kakao: "023" },
+  { re: /대구|아이엠|^im/i, name: "대구", kakao: "031" },
+  { re: /부산/, name: "부산", kakao: "032" },
+  { re: /광주/, name: "광주", kakao: "034" },
+  { re: /경남/, name: "경남", kakao: "039" },
+  { re: /전북/, name: "전북", kakao: "037" },
+  { re: /제주/, name: "제주", kakao: "035" },
+  { re: /새마을|^mg/i, name: "새마을", kakao: "045" },
+  { re: /우체국/, name: "우체국", kakao: "071" },
+  { re: /신협/, name: "신협", kakao: "048" },
+  { re: /수협/, name: "수협", kakao: "007" },
+  { re: /씨티|citi/i, name: "씨티", kakao: "027" },
+  { re: /산업|^kdb/i, name: "산업", kakao: "002" },
+  { re: /저축/, name: "저축", kakao: "050" },
+  { re: /산림/, name: "산림조합", kakao: "064" },
 ];
-
-// 카카오페이 계좌송금 앱링크용 금융기관 코드 (카카오페이 가이드 기준)
-const KAKAO_BANK_CODE: Record<string, string> = {
-  카카오뱅크: "090", 토스뱅크: "092", 케이뱅크: "089", 국민: "004", 농협: "011", 신한: "088", 우리: "020",
-  하나: "081", 기업: "003", SC제일: "023", 대구: "031", 부산: "032", 광주: "034", 경남: "039", 전북: "037",
-  제주: "035", 새마을: "045", 우체국: "071", 신협: "048", 수협: "007", 씨티: "027", 산업: "002",
-  저축: "050", 산림조합: "064",
-};
-
-function kakaoBankCode() {
-  const b = bankParts();
-  return b ? (KAKAO_BANK_CODE[b.bank] ?? "") : "";
-}
 
 /** 계좌로 받는 결제수단인지 (계좌이체, 계좌로 연결되는 토스·카카오페이 송금) — 화면·메일에 계좌번호를 보여줘요 */
 export function usesAccount(method: string | null | undefined) {
@@ -167,11 +175,6 @@ export function usesAccount(method: string | null | undefined) {
   if (method === "TOSS_SEND") return !config.tossSendLink;
   if (method === "KAKAOPAY_SEND") return !config.kakaoSendLink;
   return false;
-}
-
-function normalizeBank(name: string) {
-  for (const [re, v] of BANK_ALIASES) if (re.test(name)) return v;
-  return name.replace(/은행$/, "");
 }
 
 /** PayPal로 받을 달러 금액: 드레스 달러 가격이 있으면 그것, 없으면 환율로 계산 (1달러 단위 올림) */
@@ -187,16 +190,17 @@ export function sendLink(method: ManualMethod, krw: number, usd: string) {
     // 토스아이디 송금은 2024년에 종료돼서, 우리 계좌·금액이 채워진 토스 송금 화면을 바로 열어요 (휴대폰 토스 앱)
     const b = bankParts();
     if (!b) return "";
-    const q = new URLSearchParams({ bank: b.bank, accountNo: b.accountNo, amount: String(krw) });
+    const q = new URLSearchParams({ ...(b.bank ? { bank: b.bank } : {}), accountNo: b.accountNo, amount: String(krw) });
     return `supertoss://send?${q}`;
   }
   if (method === "KAKAOPAY_SEND") {
     if (config.kakaoSendLink) return config.kakaoSendLink.replace("{amount}", String(krw));
     // 카카오페이 공식 계좌송금 앱링크: 우리 계좌·금액이 채워진 송금 화면을 열어요 (휴대폰 카카오페이 앱)
     const b = bankParts();
-    const code = kakaoBankCode();
-    if (!b || !code) return "";
-    const q = new URLSearchParams({ bank_code: code, bank_account_number: b.accountNo, amount: String(krw) });
+    if (!b) return "";
+    // 금융기관 코드를 모르면 계좌를 채우지 않고 송금 화면만 열어요 (가이드: 코드와 계좌번호는 같이 넣어야 해요)
+    if (!b.kakaoCode) return "kakaopay://money/to/bank";
+    const q = new URLSearchParams({ bank_code: b.kakaoCode, bank_account_number: b.accountNo, amount: String(krw) });
     return `kakaopay://money/to/bank?${q}`;
   }
   if (method === "PAYPAL") {

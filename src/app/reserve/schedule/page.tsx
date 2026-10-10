@@ -106,7 +106,7 @@ export default function SchedulePage() {
 
   return (
     <>
-      <Header back />
+      <Header back="/reserve" />
       <div className={btn.page}>
         <section className={styles.schedule} data-empty={!date}>
           <h1 className={`title ${styles.blockTitle}`}>{t.schedule.dateTitle}</h1>
