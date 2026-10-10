@@ -100,7 +100,7 @@
 | `CLOSED_DATES` | (없음) | 휴무일, 쉼표로 구분 |
 | `SLOT_START` / `SLOT_END` / `SLOT_INTERVAL_MINUTES` | 11:00 / 18:00 / 30 | 예약 시작 시간 목록 |
 | `SLOT_CAPACITY` | 4 | 타임당 정원 (관리자 화면에서 타임별로 바꿀 수 있어요) |
-| `RENTAL_MINUTES` / `DRESS_BUFFER_MINUTES` | 120 / 0 | 드레스 겹침 계산 (대여 + 정리 시간) |
+| `RENTAL_MINUTES` / `DRESS_BUFFER_MINUTES` | 120 / 30 | 같은 드레스·사이즈를 다시 빌려줄 수 있는 간격 = 대여 + 정리 (기본 2시간 반) |
 | `BOOKING_CUTOFF_MINUTES` | 30 | 시작 몇 분 전까지 예약·취소 가능 |
 | `HOLD_MINUTES` | 10 | 결제 화면에서 자리 잡아두는 시간 |
 | `REFUND_RULES` | `3:100,1:50,0:0` | 이용일까지 남은 일수:환불% |

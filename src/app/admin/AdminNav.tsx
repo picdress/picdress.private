@@ -22,6 +22,10 @@ function modeLabel() {
 
 export default function AdminNav({ active }: { active: "bookings" | "dresses" }) {
   const m = modeLabel();
+  const mail =
+    config.gmailUser && config.gmailAppPassword
+      ? { text: `메일: ${config.gmailUser}에서 보내요 · 관리자 알림 → ${config.adminNotifyEmail || "(받을 주소 없음)"}`, tone: "info" }
+      : { text: "메일: GMAIL_USER / GMAIL_APP_PASSWORD가 없어서 손님에게 메일이 안 나가요", tone: "warn" };
   return (
     <>
       <nav className={styles.nav}>
@@ -39,6 +43,15 @@ export default function AdminNav({ active }: { active: "bookings" | "dresses" })
       <p className={styles.mode} data-tone={m.tone}>
         {m.text}
       </p>
+      <div className={styles.mode} data-tone={mail.tone}>
+        <span>{mail.text}</span>
+        <form action="/api/admin/test-mail" method="post" className={styles.inlineForm}>
+          <input type="hidden" name="back" value={active === "dresses" ? "/admin/dresses" : "/admin"} />
+          <button type="submit" className={styles.btn}>
+            테스트 메일 보내기
+          </button>
+        </form>
+      </div>
     </>
   );
 }

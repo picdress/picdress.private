@@ -117,6 +117,15 @@ function BookingCard({ b, back }: { b: BookingView; back: string }) {
             </form>
           </details>
         )}
+        {(b.status === "paid" || b.status === "awaiting_deposit" || b.status === "cancelled") && (
+          <form action={`/api/admin/bookings/${b.id}`} method="post">
+            <input type="hidden" name="action" value="resend-mail" />
+            <input type="hidden" name="back" value={back} />
+            <button type="submit" className={styles.btn}>
+              메일 다시 보내기
+            </button>
+          </form>
+        )}
         <details className={styles.more}>
           <summary>메모{b.adminMemo ? " ✎" : ""}</summary>
           <form action={`/api/admin/bookings/${b.id}`} method="post" className={styles.cancelForm}>

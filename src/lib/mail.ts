@@ -20,7 +20,21 @@ function getTransport() {
   return transporter;
 }
 
-async function send(to: string, subject: string, html: string) {
+/** 메일 오류를 관리자가 알아볼 수 있는 한국어로 */
+export function mailErrorText(e: unknown) {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/535|Invalid login|Username and Password not accepted|BadCredentials/i.test(msg))
+    return "Gmail 로그인 실패 — GMAIL_APP_PASSWORD에 '앱 비밀번호' 16자리를 넣었는지 확인하세요 (일반 Gmail 비밀번호는 안 돼요). GMAIL_USER도 그 계정 주소여야 해요.";
+  if (/Application-specific password required|534/i.test(msg))
+    return "Gmail이 앱 비밀번호를 요구해요 — Google 계정 → 보안 → 2단계 인증을 켠 뒤 앱 비밀번호를 만들어 GMAIL_APP_PASSWORD에 넣으세요.";
+  if (/ETIMEDOUT|ECONNECTION|ECONNREFUSED|ENOTFOUND/i.test(msg)) return `Gmail 서버에 연결하지 못했어요 (${msg.slice(0, 120)})`;
+  return msg.slice(0, 200);
+}
+
+export const MAIL_NOT_CONFIGURED = "메일 설정이 없어요 — Vercel 환경변수에 GMAIL_USER와 GMAIL_APP_PASSWORD를 넣고 다시 배포하세요.";
+
+/** 보내고 결과를 돌려줘요: 성공이면 null, 실패면 이유 (예약·결제 처리는 메일 실패와 상관없이 계속돼요) */
+async function send(to: string, subject: string, html: string): Promise<string | null> {
   const t = getTransport();
   if (!t) {
     console.log(`[메일 미설정] to=${to} subject=${subject}`);
@@ -28,15 +42,26 @@ async function send(to: string, subject: string, html: string) {
       const dir = join(process.cwd(), ".outbox");
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, `${Date.now()}-${to.replace(/[^a-z0-9]/gi, "_")}.html`), `<!-- ${subject} -->\n${html}`);
+      return null;
     }
-    return;
+    return MAIL_NOT_CONFIGURED;
   }
   try {
     await t.sendMail({ from: `"${config.mailFromName}" <${config.gmailUser}>`, to, subject, html });
+    return null;
   } catch (e) {
-    // 메일 실패가 예약/결제를 망가뜨리면 안 되니까 로그만 남겨요
     console.error("메일 발송 실패", subject, to, e);
+    return mailErrorText(e);
   }
+}
+
+/** 관리자 화면의 '테스트 메일 보내기' */
+export async function sendTestMail(to: string) {
+  return send(
+    to,
+    "[pic.dress] 테스트 메일",
+    layout("테스트 메일이에요", `<p style="font-size:14px;line-height:1.7">이 메일이 보이면 예약 확정·취소 메일도 잘 나가요. 🌿</p>`),
+  );
 }
 
 const C = { dark: "#485542", green: "#A2B798", light: "#F6FAF4", bg: "#E3E9E0" };
@@ -89,7 +114,7 @@ function manageUrl(b: BookingView) {
 
 export async function mailConfirmed(b: BookingView) {
   const t = getMessages(b.locale).mail;
-  await send(
+  const err = await send(
     b.email,
     fmt(t.confirmedSubject, { date: longDate(b.slotDate, b.locale), time: b.slotTime }),
     layout(
@@ -100,6 +125,7 @@ export async function mailConfirmed(b: BookingView) {
     ),
   );
   await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${MANUAL_ADMIN[b.paymentMethod ?? ""] ?? b.paymentMethod ?? ""})`, b);
+  return err;
 }
 
 export async function mailDepositRequest(b: BookingView) {
@@ -110,13 +136,13 @@ export async function mailDepositRequest(b: BookingView) {
   const label = (all.payment.method as Record<string, string>)[pm] ?? pm;
 
   if (pm === "ONSITE") {
-    await send(
+    const err = await send(
       b.email,
       t.onsiteSubject,
       layout(tb.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(tb.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${button(manageUrl(b), t.view)}`),
     );
     await notifyAdmin(`현장 결제 예약: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
-    return;
+    return err;
   }
 
   const amount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, b.locale);
@@ -125,7 +151,7 @@ export async function mailDepositRequest(b: BookingView) {
   const extra =
     (showsAccount ? row(t.rowBank, esc(config.bankAccount || "-")) + row(t.rowDepositor, esc(b.customerName)) : "") +
     row(t.rowDeadline, formatKst(b.holdExpiresAt));
-  await send(
+  const err = await send(
     b.email,
     t.paySubject,
     layout(
@@ -138,6 +164,7 @@ export async function mailDepositRequest(b: BookingView) {
     ),
   );
   await notifyAdmin(`결제 대기 (${MANUAL_ADMIN[pm] ?? pm}): ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} — ${amount}`, b);
+  return err;
 }
 
 const MANUAL_ADMIN: Record<string, string> = {
@@ -154,8 +181,9 @@ export async function mailCancelled(b: BookingView) {
     b.refundAmount > 0
       ? `<p style="font-size:14px;line-height:1.7">${fmt(b.paymentMode === "manual" ? t.refundManual : t.refundOnline, { amount: b.refundUsd ? usd(b.refundUsd) : money(b.refundAmount, b.locale) })}</p>`
       : "";
-  await send(b.email, t.cancelledSubject, layout(t.cancelledTitle, `${details(b)}${refund}`));
+  const err = await send(b.email, t.cancelledSubject, layout(t.cancelledTitle, `${details(b)}${refund}`));
   await notifyAdmin(`예약 취소: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (환불 ${money(b.refundAmount, "ko")})`, b);
+  return err;
 }
 
 async function notifyAdmin(subject: string, b: BookingView) {

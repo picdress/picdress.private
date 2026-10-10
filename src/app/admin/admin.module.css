@@ -492,3 +492,15 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+div.mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inlineForm {
+  margin: 0;
+}

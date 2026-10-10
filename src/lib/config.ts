@@ -43,7 +43,8 @@ export const config = {
 
   // 드레스 재고 계산: 대여 시간 + 정리 시간 동안 같은 드레스·사이즈는 다른 사람이 못 씀
   rentalMinutes: int(env.RENTAL_MINUTES, 120),
-  dressBufferMinutes: int(env.DRESS_BUFFER_MINUTES, 0),
+  // 드레스 1벌을 한 번 빌려주면 대여 2시간 + 정리 30분 = 2시간 반 동안 같은 드레스·사이즈 예약을 막아요
+  dressBufferMinutes: int(env.DRESS_BUFFER_MINUTES, 30),
 
   // 결제
   /**

@@ -396,8 +396,24 @@ export async function confirmDeposit(bookingId: string) {
     await logEvent(tx, b.id, "deposit_confirmed", {});
   });
   const view = toView((await findBy(sql, "id", bookingId))!);
-  await mailConfirmed(view);
-  return view;
+  const mailError = await mailConfirmed(view);
+  if (mailError) await logEvent(sql, view.id, "mail_failed", { kind: "confirmed", error: mailError });
+  return { booking: view, mailError };
+}
+
+/** 관리자: 지금 상태에 맞는 메일(확정·송금 안내·취소)을 손님에게 다시 보내요 */
+export async function resendMail(bookingId: string) {
+  const sql = db();
+  const row = await findBy(sql, "id", bookingId);
+  if (!row) throw new BookingError("NOT_FOUND", "예약을 찾을 수 없어요.", 404);
+  const view = toView(row);
+  let mailError: string | null;
+  if (view.status === "paid") mailError = await mailConfirmed(view);
+  else if (view.status === "awaiting_deposit") mailError = await mailDepositRequest(view);
+  else if (view.status === "cancelled") mailError = await mailCancelled(view);
+  else throw new BookingError("INVALID_STATE", "이 상태에서는 보낼 메일이 없어요.");
+  await logEvent(sql, view.id, mailError ? "mail_failed" : "mail_resent", mailError ? { error: mailError } : {});
+  return { booking: view, mailError };
 }
 
 // ───────────────────────── 취소 · 환불 ─────────────────────────

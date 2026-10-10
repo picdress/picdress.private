@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
-import { cancelBooking, confirmDeposit, markRefundDone, setMemo } from "@/lib/bookings";
+import { cancelBooking, confirmDeposit, markRefundDone, resendMail, setMemo } from "@/lib/bookings";
 import { config } from "@/lib/config";
 import { errorMessage } from "@/lib/http";
 
@@ -15,8 +15,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     let msg = "";
     if (action === "confirm-deposit") {
-      await confirmDeposit(id);
-      msg = "결제 확인 → 예약 확정했어요. 고객에게 확정 메일이 나갔어요.";
+      const { booking, mailError } = await confirmDeposit(id);
+      if (mailError) {
+        const e = `예약은 확정했지만 ${booking.email}로 확정 메일을 못 보냈어요. ${mailError}`;
+        return NextResponse.redirect(`${config.siteUrl}${withParam(back, "err", e)}`, 303);
+      }
+      msg = `결제 확인 → 예약 확정했어요. ${booking.email}로 확정 메일을 보냈어요.`;
+    } else if (action === "resend-mail") {
+      const { booking, mailError } = await resendMail(id);
+      if (mailError) return NextResponse.redirect(`${config.siteUrl}${withParam(back, "err", `메일을 못 보냈어요. ${mailError}`)}`, 303);
+      msg = `${booking.email}로 메일을 다시 보냈어요.`;
     } else if (action === "cancel") {
       const raw = String(form.get("refundAmount") ?? "").replace(/[^\d]/g, "");
       const refundAmount = raw === "" ? undefined : Number(raw);
