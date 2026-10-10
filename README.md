@@ -79,18 +79,18 @@
 
 ## 사진 바꾸기
 
-지금은 자리표시 이미지예요. 피그마에서 각 이미지 레이어를 PNG/JPG로 내보내서 같은 이름으로 덮어쓰면 돼요.
+같은 이름으로 덮어쓰면 돼요. (Claude에게 원본을 보내면 크기·용량을 맞춰서 넣어줘요)
 
-| 파일 | 피그마 위치 | 비율 |
+| 파일 | 위치 | 크기 |
 |---|---|---|
-| `public/images/logo.png` | 로고 (헤더·푸터) | 1:1 |
-| `public/images/hero.jpg` | 홈 메인 사진 (실외 이화동산) | 402×607 |
-| `public/images/program.jpg` | TOUR PROGRAM 사진 | 230×167 |
-| `public/images/coupon-1~3.png` | 팝업 쿠폰 01·02·03 | 약 16:10 |
-| `public/images/collection/1~7.jpg` | DRESS COLLECTION 사진 | 104×131 |
-| `public/images/partners/1~3.jpg` | 제휴사 사진 | 1:1 |
-| `public/images/dresses/*.jpg` | 드레스 선택 사진 | 238×320 |
-| `public/images/pay/*.png` | 결제수단 로고 (토스페이·카카오페이·PayPal). 알리페이·위챗페이·유니온페이·해외카드는 글자로 표시 | 가로형 |
+| `public/images/logo.png` | 로고 (헤더·푸터) | 정사각형, 투명 배경 |
+| `public/images/hero-1~3.jpg` | 홈 메인 사진 (자동으로 넘어가요) | 가로 1080 |
+| `public/images/program.jpg` | TOUR PROGRAM 드레스 사진 | 690×501 |
+| `public/images/coupons.png` | TOUR PROGRAM 쿠폰 모음 | 528×344 |
+| `public/images/collection/1~7.jpg` | DRESS COLLECTION 사진 | 420×529 |
+| `public/images/partners/1~3.jpg` | 제휴사 사진 (비빔파스타클럽·북카페파오·대현동 프로젝트 순) | 300×300 |
+| `public/images/dresses/*.jpg` | 드레스 선택 사진 (파일 이름 = 드레스 id) | 가로 720 |
+| `public/images/pay/*.png` | 결제수단 로고 (토스·카카오페이·PayPal) | 가로형 |
 
 ## 운영 설정 (환경변수)
 
@@ -104,7 +104,7 @@
 | `BOOKING_CUTOFF_MINUTES` | 30 | 시작 몇 분 전까지 예약·취소 가능 |
 | `HOLD_MINUTES` | 10 | 결제 화면에서 자리 잡아두는 시간 |
 | `REFUND_RULES` | `3:100,1:50,0:0` | 이용일까지 남은 일수:환불% |
-| `PAYMENT_MODE` | toss | `manual`이면 무통장입금 (해외 손님 결제 불가) |
+| `PAYMENT_MODE` | manual | `manual`: 송금 확인 방식(토스·카카오페이·계좌이체·PayPal) / `online`: 포트원 자동결제 |
 | `GLOBAL_CURRENCY` | KRW | 해외결제 청구 통화 (KRW / USD) |
 
 ## 로컬에서 실행

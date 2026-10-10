@@ -7,7 +7,9 @@ import btn from "@/components/Button.module.css";
 import { fmt } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import styles from "./home.module.css";
+import HeroSlider from "@/components/HeroSlider";
 
+const HERO_IMAGES = ["/images/hero-1.jpg", "/images/hero-2.jpg", "/images/hero-3.jpg"];
 const COLLECTION = [1, 2, 3, 4, 5, 6, 7].map((n) => `/images/collection/${n}.jpg`);
 const PARTNER_IMAGES = ["/images/partners/1.jpg", "/images/partners/2.jpg", "/images/partners/3.jpg"];
 
@@ -18,7 +20,7 @@ export default async function Home() {
       <Header />
       <main>
         <div className={styles.hero}>
-          <img src="/images/hero.jpg" alt={t.home.heroAlt} />
+          <HeroSlider images={HERO_IMAGES} alt={t.home.heroAlt} label={t.home.heroAlt} />
         </div>
         <a href="#about" className={styles.scrollHint} aria-label={t.home.scrollDown}>
           <Chevron width={40} height={18} strokeWidth={1.8} />
@@ -44,11 +46,7 @@ export default async function Home() {
               +
             </p>
             <figure className={styles.programItem}>
-              <div className={styles.coupons}>
-                <img className={styles.c2} src="/images/coupon-2.png" alt="" />
-                <img className={styles.c1} src="/images/coupon-1.png" alt="" />
-                <img className={styles.c3} src="/images/coupon-3.png" alt="" />
-              </div>
+              <img className={styles.coupons} src="/images/coupons.png" alt="" />
               <figcaption>{t.home.programCoupons}</figcaption>
             </figure>
           </div>

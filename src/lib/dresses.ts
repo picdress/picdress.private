@@ -35,14 +35,15 @@ export async function listDresses(opts: { date?: string; time?: string; includeI
   const dresses = await sql<DressRow[]>`
     select id, name, name_en, name_zh, price, price_usd, image, model_size, model_spec, active
     from dresses ${opts.includeInactive ? sql`` : sql`where active`}
-    order by sort, name
+    order by price, sort, name
   `;
   const stock = await sql<{ dress_id: string; size: string; quantity: number; sort: number }[]>`
     select dress_id, size, quantity, sort from dress_stock order by sort
   `;
   let remaining: Map<string, number> | null = null;
   if (opts.date && opts.time) {
-    const [active, activeStock] = await Promise.all([activeBookingsOn(sql, opts.date), stockRows(sql)]);
+    const active = await activeBookingsOn(sql, opts.date);
+    const activeStock = await stockRows(sql);
     remaining = dressRemaining(activeStock, active, opts.time);
   }
   return dresses.map<Dress>((d) => ({

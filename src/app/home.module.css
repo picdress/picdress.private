@@ -96,37 +96,9 @@
 
 /* 쿠폰 3장 겹치기 (피그마 Group 1: 176×114) */
 .coupons {
-  position: relative;
   width: 176px;
   height: 114.4px;
-}
-
-.coupons img {
-  position: absolute;
-  object-fit: cover;
-}
-
-.c2 {
-  left: 0;
-  top: 25.3px;
-  width: 142.5px;
-  height: 89.1px;
-}
-
-.c1 {
-  left: calc(9.66px + 3px);
-  top: calc(13.33px + 5px);
-  width: 142.2px;
-  height: 88.9px;
-  transform: rotate(4.1deg);
-}
-
-.c3 {
-  left: calc(21.15px + 6px);
-  top: calc(0px + 10.5px);
-  width: 142.8px;
-  height: 89.3px;
-  transform: rotate(8.86deg);
+  object-fit: contain;
 }
 
 /* TOUR PROGRAM 끝 → 아코디언 사이 40 */

@@ -44,17 +44,22 @@ export default function SchedulePage() {
   }, [ready]);
 
   useEffect(() => {
-    fetch("/api/availability")
-      .then((res) => res.json())
-      .then(setOverview)
+    // 응답이 없거나 오류면 '불러오는 중'에 멈추지 않고 안내 문구를 보여줘요
+    fetch("/api/availability", { signal: AbortSignal.timeout(20_000) })
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok || !Array.isArray(data.openDates)) throw new Error(data.message || "load failed");
+        setOverview(data);
+      })
       .catch(() => setError(t.schedule.loadError));
   }, []);
 
   const loadSlots = useCallback(async (d: string) => {
     try {
-      const res = await fetch(`/api/availability?date=${d}`);
+      const res = await fetch(`/api/availability?date=${d}`, { signal: AbortSignal.timeout(20_000) });
       const data = await res.json();
-      setSlots(data.slots ?? []);
+      if (!res.ok || !Array.isArray(data.slots)) throw new Error(data.message || "load failed");
+      setSlots(data.slots);
     } catch {
       setError(t.schedule.loadError);
     }
