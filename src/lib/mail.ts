@@ -186,6 +186,17 @@ export async function mailCancelled(b: BookingView) {
   return err;
 }
 
+/** 관리자가 '환불 송금 완료'를 누르면 손님에게 알려요 */
+export async function mailRefundDone(b: BookingView) {
+  const t = getMessages(b.locale).mail;
+  const amount = b.refundUsd ? usd(b.refundUsd) : money(b.refundAmount, b.locale);
+  return send(
+    b.email,
+    t.refundDoneSubject,
+    layout(t.refundDoneTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(t.refundDoneBody, { amount })}</p>`),
+  );
+}
+
 async function notifyAdmin(subject: string, b: BookingView) {
   if (!config.adminNotifyEmail) return;
   await send(config.adminNotifyEmail, `[pic.dress 관리] ${subject}`, layout(esc(subject), details({ ...b, locale: "ko" })));

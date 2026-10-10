@@ -39,8 +39,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
             : `취소하고 ${b.refundAmount.toLocaleString()}원 환불했어요.`
           : "취소했어요.";
     } else if (action === "refund-done") {
-      await markRefundDone(id);
-      msg = "환불 송금 완료로 표시했어요.";
+      const { booking, mailError } = await markRefundDone(id);
+      if (booking && mailError)
+        return NextResponse.redirect(`${config.siteUrl}${withParam(back, "err", `환불 완료로 표시했지만 안내 메일을 못 보냈어요. ${mailError}`)}`, 303);
+      msg = booking ? `환불 송금 완료로 표시하고 ${booking.email}로 환불 안내 메일을 보냈어요.` : "이미 환불 완료로 표시된 예약이에요.";
     } else if (action === "memo") {
       await setMemo(id, String(form.get("memo") ?? ""));
       msg = "메모를 저장했어요.";

@@ -3,7 +3,7 @@ import { canBook } from "./availability";
 import { config, manualMethods, usdAmount, type ManualMethod } from "./config";
 import { db, type Tx } from "./db";
 import { isLocale, type Locale } from "@/i18n/locales";
-import { mailCancelled, mailConfirmed, mailDepositRequest } from "./mail";
+import { mailCancelled, mailConfirmed, mailDepositRequest, mailRefundDone } from "./mail";
 import { cancelPayment, fetchPayment, METHOD_LABEL, PaymentApiError, type PaymentInfo } from "./portone";
 import { daysUntil, isSlotClosedByTime, isValidDate, isValidTime, shortDate, slotStartAt } from "./time";
 
@@ -496,7 +496,18 @@ export async function cancelBooking(
 
 /** 관리자: 무통장입금 환불 송금 완료 표시 */
 export async function markRefundDone(bookingId: string) {
-  await db()`update bookings set refund_done_at = now() where id = ${bookingId} and status = 'cancelled' and refund_amount > 0`;
+  const sql = db();
+  const updated = await sql`
+    update bookings set refund_done_at = now()
+    where id = ${bookingId} and status = 'cancelled' and refund_amount > 0 and refund_done_at is null
+    returning id
+  `;
+  if (updated.length === 0) return { booking: null, mailError: null };
+  await logEvent(sql, bookingId, "refund_done", {});
+  const view = toView((await findBy(sql, "id", bookingId))!);
+  const mailError = await mailRefundDone(view);
+  if (mailError) await logEvent(sql, bookingId, "mail_failed", { kind: "refund_done", error: mailError });
+  return { booking: view, mailError };
 }
 
 export async function setMemo(bookingId: string, memo: string) {
