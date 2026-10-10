@@ -142,6 +142,7 @@ const en: Messages = {
     confirmedNow: "Your booking is confirmed",
     confirmed: "Booking confirmed",
     mailSent: "We've sent a confirmation to {email}.",
+    spamHint: "Can't find our email? Please check your spam or junk folder.",
     awaitingTitle: "Your booking is confirmed once you transfer",
     deadline: "Deadline",
     deadlineValue: "by {time}",
@@ -227,7 +228,7 @@ const en: Messages = {
   },
   mail: {
     confirmedSubject: "[pic.dress] Your booking is confirmed ({date} {time})",
-    confirmedTitle: "Your booking is confirmed 🌿",
+    confirmedTitle: "Your booking is confirmed",
     confirmedBody: "Please arrive at the shop ({address}) 5 minutes before your time.<br/>You'll receive 3 partner restaurant/café coupons on site.",
     manage: "View or cancel booking",
     paySubject: "[pic.dress] Send the payment to confirm your booking",

@@ -141,6 +141,7 @@ const zh: Messages = {
     confirmedNow: "预约成功！",
     confirmed: "预约已确认",
     mailSent: "确认邮件已发送至 {email}。",
+    spamHint: "如未收到邮件，请查看垃圾邮件箱。",
     awaitingTitle: "完成转账后预约即生效",
     deadline: "转账截止",
     deadlineValue: "{time} 前",
@@ -226,7 +227,7 @@ const zh: Messages = {
   },
   mail: {
     confirmedSubject: "[pic.dress] 预约成功（{date} {time}）",
-    confirmedTitle: "预约成功 🌿",
+    confirmedTitle: "预约成功",
     confirmedBody: "请于预约时间前5分钟到达店铺（{address}）。<br/>3张合作餐厅/咖啡馆优惠券将在店内发放。",
     manage: "查看 · 取消预约",
     paySubject: "[pic.dress] 完成付款后预约即生效",

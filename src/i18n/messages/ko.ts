@@ -142,6 +142,7 @@ const ko = {
     confirmedNow: "예약이 확정되었어요",
     confirmed: "예약 확정",
     mailSent: "확인 메일을 {email}(으)로 보내드렸어요.",
+    spamHint: "메일이 안 보이면 스팸함(정크메일함)도 확인해 주세요.",
     awaitingTitle: "입금하시면 예약이 확정돼요",
     deadline: "송금 기한",
     deadlineValue: "{time}까지",
@@ -227,7 +228,7 @@ const ko = {
   } as Record<string, string>,
   mail: {
     confirmedSubject: "[pic.dress] 예약이 확정되었어요 ({date} {time})",
-    confirmedTitle: "예약이 확정되었어요 🌿",
+    confirmedTitle: "예약이 확정되었어요",
     confirmedBody: "방문 시간 5분 전까지 매장({address})으로 와주세요.<br/>제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.",
     manage: "예약 확인 · 취소",
     paySubject: "[pic.dress] 송금하시면 예약이 확정돼요",

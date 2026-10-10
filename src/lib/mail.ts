@@ -47,7 +47,15 @@ async function send(to: string, subject: string, html: string): Promise<string |
     return MAIL_NOT_CONFIGURED;
   }
   try {
-    await t.sendMail({ from: `"${config.mailFromName}" <${config.gmailUser}>`, to, subject, html });
+    // 스팸 판정을 줄이려고: 글자만 있는 버전도 같이 보내고, 답장은 가게 메일로 가게 해요
+    await t.sendMail({
+      from: `"${config.mailFromName}" <${config.gmailUser}>`,
+      replyTo: config.business.email || config.gmailUser,
+      to,
+      subject,
+      html,
+      text: htmlToText(html),
+    });
     return null;
   } catch (e) {
     console.error("메일 발송 실패", subject, to, e);
@@ -60,8 +68,29 @@ export async function sendTestMail(to: string) {
   return send(
     to,
     "[pic.dress] 테스트 메일",
-    layout("테스트 메일이에요", `<p style="font-size:14px;line-height:1.7">이 메일이 보이면 예약 확정·취소 메일도 잘 나가요. 🌿</p>`),
+    layout("테스트 메일이에요", `<p style="font-size:14px;line-height:1.7">이 메일이 보이면 예약 확정·취소 메일도 잘 나가요.</p>`),
   );
+}
+
+/** HTML 메일 → 글자만 있는 버전 (링크는 "글자 (주소)"로) */
+function htmlToText(html: string) {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_, href, label) => `${label.replace(/<[^>]+>/g, "").trim()} (${href})`)
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|h1|tr|div)>/gi, "\n")
+    .replace(/<\/td>/gi, "  ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/^[ \t]+/gm, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 const C = { dark: "#485542", green: "#A2B798", light: "#F6FAF4", bg: "#E3E9E0" };
