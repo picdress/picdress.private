@@ -8,7 +8,7 @@ function modeLabel() {
     const m = manualMethods().map((x) => MANUAL_LABEL[x]).join(" · ");
     return m
       ? { text: `결제: 송금 확인 방식 (${m}) — 송금이 들어오면 '결제 확인'을 눌러주세요`, tone: "info" }
-      : { text: "결제: 결제수단이 하나도 설정되지 않아서 예약을 받을 수 없어요 (BANK_ACCOUNT, KAKAOPAY_SEND_LINK, PAYPAL_LINK 등)", tone: "warn" };
+      : { text: "결제: 결제수단이 하나도 설정되지 않아서 예약을 받을 수 없어요 (BANK_ACCOUNT, PAYPAL_LINK 등)", tone: "warn" };
   }
   if (config.mockPayments) return { text: "결제: 모의결제(테스트) — 실제 서버에서는 끄세요!", tone: "warn" };
   if (!config.portoneStoreId || !config.portoneApiSecret) return { text: "결제: 포트원 설정이 없어서 예약을 받을 수 없어요", tone: "warn" };

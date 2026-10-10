@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
 import { formatPhone, getBookingByToken, refundQuote } from "@/lib/bookings";
-import { config, sendLink, type ManualMethod } from "@/lib/config";
+import { config, sendLink, usesAccount, type ManualMethod } from "@/lib/config";
 import { formatKst, isSlotClosedByTime } from "@/lib/time";
 import { dressName, errorText, fmt, longDate, money, shortDate, usd, withRo } from "@/i18n";
 import { getI18n } from "@/i18n/server";
@@ -42,7 +42,7 @@ export default async function BookingPage({
   const payAmount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, locale);
   const link = b.status === "awaiting_deposit" ? sendLink(pm, b.amount, b.amountUsd ?? "0") : "";
   // 계좌로 받는 방식(계좌이체, 계좌 기반 토스 송금)은 계좌번호도 보여줘요
-  const showsAccount = pm === "BANK" || (pm === "TOSS_SEND" && !config.tossSendLink && Boolean(config.bankAccount));
+  const showsAccount = usesAccount(pm);
 
   return (
     <>
@@ -78,6 +78,7 @@ export default async function BookingPage({
                 </p>
               )}
               {showsAccount && link.startsWith("supertoss:") && <p className={styles.small}>{tb.tossHint}</p>}
+              {showsAccount && link.startsWith("kakaopay:") && <p className={styles.small}>{tb.kakaoHint}</p>}
               {showsAccount && (
                 <div className={styles.bank}>
                   <p className={styles.bankLine}>

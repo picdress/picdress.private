@@ -173,6 +173,7 @@ const en: Messages = {
     bankNote: "Please use {name} as the depositor name.",
     copy: "Copy",
     copied: "Copied",
+    kakaoHint: "Tap this on a phone with the KakaoPay app. If it doesn't open, copy the account number and send it in KakaoPay or KakaoTalk.",
     tossHint: "Tap this on a phone with the Toss app. If it doesn't open, copy the account number and send it in Toss.",
     memoNote: "If the sender name is different from {name}, please write {name} in the note.",
     checkNote: "We'll email you once we've checked your payment. If we don't receive it by the deadline, the booking is cancelled automatically.",

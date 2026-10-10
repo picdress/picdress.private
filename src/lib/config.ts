@@ -71,7 +71,7 @@ export const config = {
   // manual 모드 결제수단 — 값을 넣은 것만 결제 화면에 보여요
   /** (선택) 토스 송금에 쓸 다른 링크. 비워두면 BANK_ACCOUNT로 토스 송금 화면 링크를 만들어요 */
   tossSendLink: env.TOSS_SEND_LINK ?? "",
-  /** 카카오페이 송금코드 링크 (카카오페이 앱 → 송금 → 송금코드 → 링크 복사) */
+  /** (선택) 카카오페이 송금에 쓸 다른 링크. 비워두면 BANK_ACCOUNT로 카카오페이 계좌송금 화면 링크를 만들어요 */
   kakaoSendLink: env.KAKAOPAY_SEND_LINK ?? "",
   /** PayPal.Me 링크 (예: https://paypal.me/picdress) — 달러 금액이 자동으로 붙어요 */
   paypalLink: env.PAYPAL_LINK ?? "",
@@ -113,7 +113,7 @@ export type ManualMethod = "TOSS_SEND" | "KAKAOPAY_SEND" | "PAYPAL" | "BANK" | "
 export function manualMethods(): ManualMethod[] {
   const out: ManualMethod[] = [];
   if (config.tossSendLink || bankParts()) out.push("TOSS_SEND");
-  if (config.kakaoSendLink) out.push("KAKAOPAY_SEND");
+  if (config.kakaoSendLink || kakaoBankCode()) out.push("KAKAOPAY_SEND");
   if (config.paypalLink) out.push("PAYPAL");
   if (config.bankAccount) out.push("BANK");
   if (config.onsitePayment) out.push("ONSITE");
@@ -139,12 +139,35 @@ const BANK_ALIASES: [RegExp, string][] = [
   [/국민|^kb/i, "국민"],
   [/농협|^nh/i, "농협"],
   [/기업|^ibk/i, "기업"],
-  [/하나|^keb/i, "하나"],
+  [/하나|외환|^keb/i, "하나"],
   [/sc|제일/i, "SC제일"],
   [/새마을/, "새마을"],
   [/아이엠|^im|대구/i, "대구"],
   [/씨티|citi/i, "씨티"],
+  [/산업|^kdb/i, "산업"],
 ];
+
+// 카카오페이 계좌송금 앱링크용 금융기관 코드 (카카오페이 가이드 기준)
+const KAKAO_BANK_CODE: Record<string, string> = {
+  카카오뱅크: "090", 토스뱅크: "092", 케이뱅크: "089", 국민: "004", 농협: "011", 신한: "088", 우리: "020",
+  하나: "081", 기업: "003", SC제일: "023", 대구: "031", 부산: "032", 광주: "034", 경남: "039", 전북: "037",
+  제주: "035", 새마을: "045", 우체국: "071", 신협: "048", 수협: "007", 씨티: "027", 산업: "002",
+  저축: "050", 산림조합: "064",
+};
+
+function kakaoBankCode() {
+  const b = bankParts();
+  return b ? (KAKAO_BANK_CODE[b.bank] ?? "") : "";
+}
+
+/** 계좌로 받는 결제수단인지 (계좌이체, 계좌로 연결되는 토스·카카오페이 송금) — 화면·메일에 계좌번호를 보여줘요 */
+export function usesAccount(method: string | null | undefined) {
+  if (!config.bankAccount) return false;
+  if (method === "BANK") return true;
+  if (method === "TOSS_SEND") return !config.tossSendLink;
+  if (method === "KAKAOPAY_SEND") return !config.kakaoSendLink;
+  return false;
+}
 
 function normalizeBank(name: string) {
   for (const [re, v] of BANK_ALIASES) if (re.test(name)) return v;
@@ -167,7 +190,15 @@ export function sendLink(method: ManualMethod, krw: number, usd: string) {
     const q = new URLSearchParams({ bank: b.bank, accountNo: b.accountNo, amount: String(krw) });
     return `supertoss://send?${q}`;
   }
-  if (method === "KAKAOPAY_SEND") return config.kakaoSendLink.replace("{amount}", String(krw));
+  if (method === "KAKAOPAY_SEND") {
+    if (config.kakaoSendLink) return config.kakaoSendLink.replace("{amount}", String(krw));
+    // 카카오페이 공식 계좌송금 앱링크: 우리 계좌·금액이 채워진 송금 화면을 열어요 (휴대폰 카카오페이 앱)
+    const b = bankParts();
+    const code = kakaoBankCode();
+    if (!b || !code) return "";
+    const q = new URLSearchParams({ bank_code: code, bank_account_number: b.accountNo, amount: String(krw) });
+    return `kakaopay://money/to/bank?${q}`;
+  }
   if (method === "PAYPAL") {
     const base = config.paypalLink.replace(/\/$/, "");
     if (base.includes("{amount}")) return base.replace("{amount}", usd);

@@ -172,6 +172,7 @@ const zh: Messages = {
     bankNote: "汇款人姓名请填写预约人姓名（{name}）。",
     copy: "复制",
     copied: "已复制",
+    kakaoHint: "请在已安装 KakaoPay 的手机上点击。若无法打开，请复制账号后在 KakaoPay 或 KakaoTalk 中转账。",
     tossHint: "请在已安装 Toss 的手机上点击。若无法打开，请复制账号后在 Toss 中转账。",
     memoNote: "若付款人姓名与预约人（{name}）不同，请在备注中填写预约人姓名。",
     checkNote: "确认收款后我们会发送确认邮件。如未在截止时间前付款，预约将自动取消。",

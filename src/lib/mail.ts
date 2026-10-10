@@ -1,7 +1,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { config, sendLink, type ManualMethod } from "./config";
+import { config, sendLink, usesAccount, type ManualMethod } from "./config";
 import type { BookingView } from "./bookings";
 import { dressName, fmt, getMessages, longDate, money, usd, withRo } from "@/i18n";
 import { formatKst } from "./time";
@@ -121,7 +121,7 @@ export async function mailDepositRequest(b: BookingView) {
 
   const amount = pm === "PAYPAL" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, b.locale);
   const link = sendLink(pm, b.amount, b.amountUsd ?? "0");
-  const showsAccount = pm === "BANK" || (pm === "TOSS_SEND" && !config.tossSendLink && Boolean(config.bankAccount));
+  const showsAccount = usesAccount(pm);
   const extra =
     (showsAccount ? row(t.rowBank, esc(config.bankAccount || "-")) + row(t.rowDepositor, esc(b.customerName)) : "") +
     row(t.rowDeadline, formatKst(b.holdExpiresAt));
