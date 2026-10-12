@@ -77,6 +77,7 @@ function htmlToText(html: string) {
   return html
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_, href, label) => `${label.replace(/<[^>]+>/g, "").trim()} (${href})`)
+    .replace(/<li[^>]*>/gi, "\n• ")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(p|h1|tr|div)>/gi, "\n")
     .replace(/<\/td>/gi, "  ")
@@ -150,6 +151,10 @@ export async function mailConfirmed(b: BookingView) {
       t.confirmedTitle,
       `${details(b)}
       <p style="font-size:13px;line-height:1.7;margin-top:16px">${fmt(t.confirmedBody, { address: esc(config.business.address) })}</p>
+      <div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#fff">
+        <p style="margin:0 0 6px;font-size:14px;font-weight:700">[${t.noticeTitle}]</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7">${t.notices.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
+      </div>
       ${button(manageUrl(b), t.manage)}`,
     ),
   );

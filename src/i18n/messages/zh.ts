@@ -233,6 +233,12 @@ const zh: Messages = {
     confirmedSubject: "[pic.dress] 预约成功（{date} {time}）",
     confirmedTitle: "预约成功",
     confirmedBody: "请于预约时间前5分钟到达店铺（{address}）。<br/>3张合作餐厅/咖啡馆优惠券将在店内发放。",
+    noticeTitle: "温馨提示",
+    notices: [
+      "店内备有与礼服相配的饰品、假发和道具等（租借需另付 3,000 韩元）。",
+      "店内不提供鞋子，建议穿与礼服相配的鞋子前来。",
+      "拍照时不方便携带的行李可以寄存在店内。",
+    ],
     manage: "查看 · 取消预约",
     paySubject: "[pic.dress] 完成付款后预约即生效",
     onsiteSubject: "[pic.dress] 预约已登记",

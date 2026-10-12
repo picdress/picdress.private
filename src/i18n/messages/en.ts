@@ -234,6 +234,12 @@ const en: Messages = {
     confirmedSubject: "[pic.dress] Your booking is confirmed ({date} {time})",
     confirmedTitle: "Your booking is confirmed",
     confirmedBody: "Please arrive at the shop ({address}) 5 minutes before your time.<br/>You'll receive 3 partner restaurant/café coupons on site.",
+    noticeTitle: "Good to know",
+    notices: [
+      "Accessories, wigs and props that go with the dresses are available at the shop (extra ₩3,000 to rent).",
+      "Shoes are not provided, so please wear shoes that go well with your dress.",
+      "You can leave any bags that might get in the way of your photos at the shop.",
+    ],
     manage: "View or cancel booking",
     paySubject: "[pic.dress] Send the payment to confirm your booking",
     onsiteSubject: "[pic.dress] Your booking is reserved",

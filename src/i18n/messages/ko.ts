@@ -234,6 +234,12 @@ const ko = {
     confirmedSubject: "[pic.dress] 예약이 확정되었어요 ({date} {time})",
     confirmedTitle: "예약이 확정되었어요",
     confirmedBody: "방문 시간 5분 전까지 매장({address})으로 와주세요.<br/>제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.",
+    noticeTitle: "안내 사항",
+    notices: [
+      "드레스에 어울리는 악세사리나 가발, 소품 등이 매장에 준비되어 있어요. (대여시 추가금 3,000원)",
+      "구두는 준비되어 있지 않으니 드레스와 어울리는 신발을 신고 오시면 좋아요.",
+      "사진 찍는데 방해가 될 짐은 매장 내에 맡길 수 있어요.",
+    ],
     manage: "예약 확인 · 취소",
     paySubject: "[pic.dress] 송금하시면 예약이 확정돼요",
     onsiteSubject: "[pic.dress] 예약이 접수되었어요",
