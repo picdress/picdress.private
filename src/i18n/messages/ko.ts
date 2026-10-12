@@ -187,7 +187,7 @@ const ko = {
     statusOnsite: "현장 결제 예정",
     visitTitle: "방문 안내",
     visit: [
-      "예약 시간 5분 전까지 {address}로 와주세요.",
+      "예약 시간 10분 전까지 {address}로 와주세요.",
       "제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.",
       "문의: {phone} · 인스타그램 @pic.dress",
     ],
@@ -233,7 +233,7 @@ const ko = {
   mail: {
     confirmedSubject: "[pic.dress] 예약이 확정되었어요 ({date} {time})",
     confirmedTitle: "예약이 확정되었어요",
-    confirmedBody: "방문 시간 5분 전까지 매장({address})으로 와주세요.<br/>제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.",
+    confirmedBody: "방문 시간 10분 전까지 매장({address})으로 와주세요.<br/>제휴 음식점·카페 쿠폰 3장은 현장에서 드려요.",
     noticeTitle: "안내 사항",
     notices: [
       "드레스에 어울리는 악세사리나 가발, 소품 등이 매장에 준비되어 있어요. (대여시 추가금 3,000원)",

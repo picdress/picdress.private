@@ -187,7 +187,7 @@ const en: Messages = {
     statusOnsite: "Pay at the shop",
     visitTitle: "Before your visit",
     visit: [
-      "Please arrive 5 minutes early at {address}.",
+      "Please arrive 10 minutes early at {address}.",
       "You'll receive your 3 partner coupons at the shop.",
       "Questions: {phone} · Instagram @pic.dress",
     ],
@@ -233,7 +233,7 @@ const en: Messages = {
   mail: {
     confirmedSubject: "[pic.dress] Your booking is confirmed ({date} {time})",
     confirmedTitle: "Your booking is confirmed",
-    confirmedBody: "Please arrive at the shop ({address}) 5 minutes before your time.<br/>You'll receive 3 partner restaurant/café coupons on site.",
+    confirmedBody: "Please arrive at the shop ({address}) 10 minutes before your time.<br/>You'll receive 3 partner restaurant/café coupons on site.",
     noticeTitle: "Good to know",
     notices: [
       "Accessories, wigs and props that go with the dresses are available at the shop (extra ₩3,000 to rent).",

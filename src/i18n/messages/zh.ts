@@ -186,7 +186,7 @@ const zh: Messages = {
     statusOnsite: "到店支付",
     visitTitle: "到店须知",
     visit: [
-      "请于预约时间前5分钟到达 {address}。",
+      "请于预约时间前10分钟到达 {address}。",
       "3张合作餐厅/咖啡馆优惠券将在店内发放。",
       "咨询：{phone} · Instagram @pic.dress",
     ],
@@ -232,7 +232,7 @@ const zh: Messages = {
   mail: {
     confirmedSubject: "[pic.dress] 预约成功（{date} {time}）",
     confirmedTitle: "预约成功",
-    confirmedBody: "请于预约时间前5分钟到达店铺（{address}）。<br/>3张合作餐厅/咖啡馆优惠券将在店内发放。",
+    confirmedBody: "请于预约时间前10分钟到达店铺（{address}）。<br/>3张合作餐厅/咖啡馆优惠券将在店内发放。",
     noticeTitle: "温馨提示",
     notices: [
       "店内备有与礼服相配的饰品、假发和道具等（租借需另付 3,000 韩元）。",
