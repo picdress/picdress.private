@@ -195,14 +195,22 @@ export function sendLink(method: ManualMethod, krw: number, usd: string) {
     return `supertoss://send?${q}`;
   }
   if (method === "KAKAOPAY_SEND") {
-    if (config.kakaoSendLink) return config.kakaoSendLink.replace("{amount}", String(krw));
+    if (config.kakaoSendLink) {
+      const link = config.kakaoSendLink.trim();
+      if (link.includes("{amount}")) return link.replace("{amount}", String(krw));
+      // 카카오페이 송금코드 링크면 금액을 붙여서 카카오톡 송금 화면이 금액까지 채워진 채로 열려요
+      const qr = link.match(/^https?:\/\/qr\.kakaopay\.com\/([A-Za-z0-9]+)/i);
+      if (qr) return `https://qr.kakaopay.com/${qr[1]}${(krw * 524288).toString(16)}`;
+      return link;
+    }
     // 카카오페이 공식 계좌송금 앱링크: 우리 계좌·금액이 채워진 송금 화면을 열어요 (휴대폰 카카오페이 앱)
     const b = bankParts();
     if (!b) return "";
+    // 카카오톡 앱 안의 카카오페이 계좌송금 화면으로 (우리 계좌·금액 채움)
     // 금융기관 코드를 모르면 계좌를 채우지 않고 송금 화면만 열어요 (가이드: 코드와 계좌번호는 같이 넣어야 해요)
-    if (!b.kakaoCode) return "kakaopay://money/to/bank";
+    if (!b.kakaoCode) return "kakaotalk://kakaopay/money/to/bank";
     const q = new URLSearchParams({ bank_code: b.kakaoCode, bank_account_number: b.accountNo, amount: String(krw) });
-    return `kakaopay://money/to/bank?${q}`;
+    return `kakaotalk://kakaopay/money/to/bank?${q}`;
   }
   if (method === "PAYPAL") {
     const base = config.paypalLink.replace(/\/$/, "");

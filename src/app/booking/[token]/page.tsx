@@ -79,7 +79,7 @@ export default async function BookingPage({
                 </p>
               )}
               {showsAccount && link.startsWith("supertoss:") && <p className={styles.small}>{tb.tossHint}</p>}
-              {showsAccount && link.startsWith("kakaopay:") && <p className={styles.small}>{tb.kakaoHint}</p>}
+              {showsAccount && link.startsWith("kakaotalk:") && <p className={styles.small}>{tb.kakaoHint}</p>}
               {showsAccount && (
                 <div className={styles.bank}>
                   <p className={styles.bankLine}>
