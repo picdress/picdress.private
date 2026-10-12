@@ -1,6 +1,6 @@
 -- 드레스 데이터. 처음 한 번만 들어가고, 그 뒤로는 관리자 화면 > 드레스 관리에서 바꾼 값이 유지돼요.
 -- 사이즈별 수량은 1벌씩으로 넣어뒀어요 (관리자 화면에서 바꿀 수 있어요).
--- 드레스 선택 화면은 낮은 가격순으로 보여요 (같은 가격이면 sort 순서).
+-- 드레스 선택 화면은 비싼 가격순으로 보여요 (같은 가격이면 sort 순서).
 
 insert into dresses (id, name, name_en, name_zh, price, price_usd, image, model_size, model_spec, sort) values
   ('red-velvet',        '레드벨벳',         'Red Velvet',        '红色丝绒',   22000, null, '/images/dresses/red-velvet.jpg',        null, null, 1),

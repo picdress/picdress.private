@@ -145,7 +145,7 @@ const zh: Messages = {
     confirmedNow: "预约成功！",
     confirmed: "预约已确认",
     mailSent: "确认邮件已发送至 {email}。",
-    spamHint: "如未收到邮件，请查看垃圾邮件箱。",
+    spamHint: "如果收件箱里没有看到预约确认邮件，请查看垃圾邮件箱 :)",
     awaitingTitle: "完成转账后预约即生效",
     deadline: "转账截止",
     deadlineValue: "{time} 前",

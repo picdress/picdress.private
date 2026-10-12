@@ -185,3 +185,16 @@
   font-size: 12.5px;
   cursor: pointer;
 }
+
+/* 스팸함 안내: 잘 보이게 박스로 */
+.spamHint {
+  margin: 14px auto 0 !important;
+  max-width: 330px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--light);
+  color: var(--dark);
+  font-size: 13.5px;
+  line-height: 1.5;
+  word-break: keep-all;
+}

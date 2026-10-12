@@ -54,7 +54,7 @@ export default async function BookingPage({
             <>
               <p className={`title ${styles.big}`}>{justDone ? tb.confirmedNow : tb.confirmed}</p>
               <p>{fmt(tb.mailSent, { email: b.email })}</p>
-              <p className={styles.small}>{tb.spamHint}</p>
+              <p className={styles.spamHint}>{tb.spamHint}</p>
             </>
           )}
           {b.status === "awaiting_deposit" && b.paymentMethod === "ONSITE" && (
@@ -99,7 +99,7 @@ export default async function BookingPage({
               </div>
               <p className={styles.small}>{fmt(showsAccount ? tb.bankNote : tb.memoNote, { name: b.customerName })}</p>
               <p className={styles.small}>{tb.checkNote}</p>
-              <p className={styles.small}>{tb.spamHint}</p>
+              <p className={styles.spamHint}>{tb.spamHint}</p>
             </>
           )}
           {b.status === "cancelled" && (

@@ -49,7 +49,6 @@ const TEXT = {
       '예약 확인 메일의 "예약 확인 · 취소" 링크에서 직접 취소할 수 있으며, 환불 금액은 위 규정에 따라 자동 계산됩니다.',
       "카드·간편결제·해외결제는 결제한 수단으로 환불되며, 결제사 사정에 따라 영업일 기준 3~7일이 걸릴 수 있습니다.",
       "해외결제는 환율 변동으로 실제 환불액이 결제 당시와 다를 수 있습니다.",
-      `예약 시작 ${cutoff}분 전 이후에는 온라인 취소가 불가하며 매장으로 문의해 주세요.`,
     ],
     privacy: "개인정보처리방침",
     privacyRows: [
@@ -78,7 +77,6 @@ const TEXT = {
       'You can cancel yourself via the "View or cancel booking" link in your confirmation email. The refund is calculated automatically according to the policy above.',
       "Card, mobile and international payments are refunded to the original payment method. It may take 3–7 business days depending on the provider.",
       "For international payments, the refunded amount in your currency may differ from the original due to exchange rates.",
-      `Online cancellation is not available within ${cutoff} minutes of your booking time. Please contact the shop.`,
     ],
     privacy: "Privacy Policy",
     privacyRows: [
@@ -107,7 +105,6 @@ const TEXT = {
       "您可以通过预约确认邮件中的「查看 · 取消预约」链接自行取消，退款金额将按上述规定自动计算。",
       "银行卡、移动支付及国际支付将原路退回，视支付机构不同可能需要3~7个工作日。",
       "国际支付因汇率变动，实际退款金额可能与支付时不同。",
-      `预约开始前${cutoff}分钟内无法在线取消，请联系店铺。`,
     ],
     privacy: "隐私政策",
     privacyRows: [
@@ -154,7 +151,7 @@ export default async function PolicyPage() {
         ...base,
         refundExtra: (cutoff: number) => {
           const items = base.refundExtra(cutoff);
-          return [items[0], m.refund2, m.refund3, items[3]];
+          return [items[0], m.refund2, m.refund3];
         },
         privacyRows: base.privacyRows.map(([k, v], i) => (i === 3 ? [k, m.processors] : i === 4 ? [k, m.abroad] : [k, v])),
       }

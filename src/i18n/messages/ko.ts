@@ -146,7 +146,7 @@ const ko = {
     confirmedNow: "예약이 확정되었어요",
     confirmed: "예약 확정",
     mailSent: "확인 메일을 {email}(으)로 보내드렸어요.",
-    spamHint: "메일이 안 보이면 스팸함(정크메일함)도 확인해 주세요.",
+    spamHint: "예약 확정 메일이 수신함에서 안 보이는 경우, 스팸함에서 확인 부탁드립니다 :)",
     awaitingTitle: "입금하시면 예약이 확정돼요",
     deadline: "송금 기한",
     deadlineValue: "{time}까지",

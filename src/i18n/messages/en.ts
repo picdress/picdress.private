@@ -146,7 +146,7 @@ const en: Messages = {
     confirmedNow: "Your booking is confirmed",
     confirmed: "Booking confirmed",
     mailSent: "We've sent a confirmation to {email}.",
-    spamHint: "Can't find our email? Please check your spam or junk folder.",
+    spamHint: "If you can't find the confirmation email in your inbox, please check your spam folder :)",
     awaitingTitle: "Your booking is confirmed once you transfer",
     deadline: "Deadline",
     deadlineValue: "by {time}",

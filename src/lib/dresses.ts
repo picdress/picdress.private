@@ -35,7 +35,7 @@ export async function listDresses(opts: { date?: string; time?: string; includeI
   const dresses = await sql<DressRow[]>`
     select id, name, name_en, name_zh, price, price_usd, image, model_size, model_spec, active
     from dresses ${opts.includeInactive ? sql`` : sql`where active`}
-    order by price, sort, name
+    order by price desc, sort, name
   `;
   const stock = await sql<{ dress_id: string; size: string; quantity: number; sort: number }[]>`
     select dress_id, size, quantity, sort from dress_stock order by sort
