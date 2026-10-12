@@ -24,6 +24,11 @@ const en: Messages = {
     ],
     programRental: "2-hour dress rental (choose your dress)",
     programCoupons: "3 coupons for partner restaurants & cafés",
+    programDesc: [
+      "During your 2-hour dress rental,\nexplore the Ewha campus freely, take photos,\nand visit our partner restaurants & cafés with your coupons.",
+      "pic.dress does not provide a tour guide\nor a photographer.\nEnjoy the tour at your own pace.",
+    ],
+    photoAlt: "pic.dress photo {n}",
     reserve: "Book now",
     collectionAlt: "Dress collection {n}",
     partners: [

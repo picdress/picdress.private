@@ -23,6 +23,11 @@ const zh: Messages = {
     ],
     programRental: "礼服租赁2小时（可自选礼服）",
     programCoupons: "赠送3张合作餐厅/咖啡馆优惠券",
+    programDesc: [
+      "在租借礼服的2小时内，\n自由游览梨花女子大学校园并拍照留念，\n还可以带着优惠券去合作餐厅/咖啡馆坐坐。",
+      "pic.dress 不提供导游\n或摄影服务。\n请自由享受游览时光。",
+    ],
+    photoAlt: "pic.dress 照片 {n}",
     reserve: "立即预约",
     collectionAlt: "礼服系列 {n}",
     partners: [

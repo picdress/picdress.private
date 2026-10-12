@@ -9,12 +9,17 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 30px 57px;
+  padding: 30px 20px;
   border: 0;
   background: none;
   color: var(--dark);
   font-size: 18px;
   line-height: 22px;
+}
+
+/* 긴 제목(pic.dress PHOTO COLLECTION)도 한 줄로 */
+.head .title {
+  white-space: nowrap;
 }
 
 .panel {

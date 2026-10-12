@@ -24,6 +24,11 @@ const ko = {
     ],
     programRental: "드레스 대여 2시간 (드레스 선택 가능)",
     programCoupons: "제휴 음식점/카페 쿠폰 3장 제공",
+    programDesc: [
+      "드레스를 대여하는 2시간동안\n이화여대 캠퍼스를 자유롭게 투어하며 사진을 남기고,\n제휴 음식점/카페에 쿠폰과 함께 방문해보세요.",
+      "pic.dress 업체에서 별도의 투어 가이드 직원이나,\n사진 촬영은 지원하지 않습니다.\n자유롭게 투어 프로그램을 즐겨주세요.",
+    ],
+    photoAlt: "pic.dress 사진 {n}",
     reserve: "예약하기",
     collectionAlt: "드레스 컬렉션 {n}",
     partners: [

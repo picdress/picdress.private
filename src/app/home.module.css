@@ -53,6 +53,24 @@
   margin-top: 1.2em;
 }
 
+.programDesc {
+  margin: 12px -40px 0;
+  color: #5a5a5a;
+  font-size: 13.5px;
+  line-height: 1.5;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.programDesc p {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.programDesc p + p {
+  margin-top: 1.3em;
+}
+
 /* ABOUT 끝(1198) → TOUR PROGRAM(1258) = 60 */
 .program {
   margin-top: 60px;
@@ -121,6 +139,23 @@
 .collection img {
   width: 100%;
   aspect-ratio: 104 / 131;
+  object-fit: cover;
+}
+
+/* pic.dress PHOTO COLLECTION: 한 줄에 한 장씩 크게 */
+.photos {
+  width: 100%;
+  padding: 0 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.photos img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
 }
 
