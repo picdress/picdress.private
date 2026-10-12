@@ -19,7 +19,6 @@ const zh: Messages = {
     about: [
       "pic.dress 是为了让梨大商圈焕发活力\n而诞生的礼服体验之旅。",
       "穿上礼服漫步校园、拍下美照，\n再去探访梨大独有的特色餐厅和咖啡馆吧。",
-      "和 pic.dress 一起，享受只有在梨花才能体验的礼服之旅。",
     ],
     programRental: "礼服租赁2小时（可自选礼服）",
     programCoupons: "赠送3张合作餐厅/咖啡馆优惠券",

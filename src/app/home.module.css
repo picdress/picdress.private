@@ -32,16 +32,18 @@
 }
 
 .about {
-  padding: 46px 57px;
+  padding: 46px 20px;
   display: flex;
   flex-direction: column;
   gap: 45px;
 }
 
+/* 줄이 중간에 꺾이지 않게: 화면이 좁으면 글자도 같이 작아져요 */
 .aboutText {
-  color: #000;
-  font-size: 14px;
-  line-height: normal;
+  color: var(--dark);
+  font-size: min(14px, 3.45vw);
+  line-height: 1.5;
+  word-break: keep-all;
 }
 
 .aboutText p {

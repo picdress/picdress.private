@@ -20,7 +20,6 @@ const en: Messages = {
     about: [
       "pic.dress is a dress tour created to bring new life\nto the neighborhood around Ewha Womans University.",
       "Put on a dress, wander the campus taking photos,\nand visit the special restaurants and cafés of Ewha.",
-      "Enjoy a dress tour you can only find at Ewha — with pic.dress.",
     ],
     programRental: "2-hour dress rental (choose your dress)",
     programCoupons: "3 coupons for partner restaurants & cafés",
