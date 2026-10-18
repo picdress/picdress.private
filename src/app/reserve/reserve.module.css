@@ -253,6 +253,20 @@
   white-space: nowrap;
 }
 
+/* 드레스 한 줄 소개: 이름 아래 작은 글씨 (을유1945) */
+.tagline {
+  flex-basis: 100%;
+  margin: 6px 0 0;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--dark);
+  opacity: 0.85;
+  text-align: left;
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
 /* 이름이 길면 대여비는 다음 줄 오른쪽으로 */
 .dressInfo .dressMeta {
   margin-left: auto;

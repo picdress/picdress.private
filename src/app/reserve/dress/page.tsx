@@ -56,6 +56,7 @@ export default function DressListPage() {
                     <div className={styles.dressMeta}>
                       <span>{fmt(t.dress.fee, { price: money(d.price, locale) })}</span>
                     </div>
+                    {DRESS_MEDIA[d.id]?.tagline && <p className={styles.tagline}>{DRESS_MEDIA[d.id]!.tagline![locale]}</p>}
                   </div>
                 </Link>
               </li>
