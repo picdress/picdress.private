@@ -9,6 +9,8 @@ import { dressName, fmt, money } from "@/i18n/format";
 import { useReservation } from "../../useReservation";
 import styles from "../../reserve.module.css";
 import type { Dress } from "@/lib/dresses";
+import { DRESS_MEDIA } from "@/lib/dressMedia";
+import DressGallery from "./DressGallery";
 
 // 02_예약_드레스사이즈선택
 export default function DressDetailPage() {
@@ -43,6 +45,7 @@ export default function DressDetailPage() {
   }
 
   const allGone = dress?.sizes.every((s) => (s.remaining ?? 0) <= 0);
+  const media = dress ? DRESS_MEDIA[dress.id] : undefined;
 
   return (
     <>
@@ -54,7 +57,44 @@ export default function DressDetailPage() {
           <>
             <h1 className={`title ${styles.detailName}`}>{dressName(dress, locale)}</h1>
             <p className={styles.detailPrice}>{money(dress.price, locale)}</p>
-            <img className={styles.detailImg} src={dress.image} alt={dressName(dress, locale)} />
+            <DressGallery
+              photos={media?.gallery ?? [dress.image]}
+              alt={dressName(dress, locale)}
+              photoLabel={t.dress.photo}
+            />
+
+            {media?.chart && (
+              <section className={styles.chart} aria-labelledby="size-chart-title">
+                <h2 id="size-chart-title" className={`title ${styles.chartTitle}`}>
+                  {t.dress.chartTitle}
+                </h2>
+                <div className={styles.chartScroll}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">{t.dress.chart.size}</th>
+                        {media.chart.columns.map((c) => (
+                          <th key={c} scope="col">
+                            {t.dress.chart[c]}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {media.chart.rows.map((row) => (
+                        <tr key={row.size} aria-selected={size === row.size}>
+                          <th scope="row">{row.size}</th>
+                          {row.values.map((v, i) => (
+                            <td key={i}>{v}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className={styles.chartUnit}>{t.dress.chartUnit}</p>
+              </section>
+            )}
 
             <h2 className={`title ${styles.sizeTitle}`}>{t.dress.sizeTitle}</h2>
             {(dress.modelSize || dress.modelSpec) && (

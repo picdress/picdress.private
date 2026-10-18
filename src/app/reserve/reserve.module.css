@@ -243,8 +243,19 @@
 
 .dressInfo {
   display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
+}
+
+.dressInfo .title {
+  white-space: nowrap;
+}
+
+/* 이름이 길면 대여비는 다음 줄 오른쪽으로 */
+.dressInfo .dressMeta {
+  margin-left: auto;
 }
 
 .dressInfo .title {
@@ -308,6 +319,139 @@
   margin: 0 auto;
 }
 
+/* 드레스 사진 갤러리: 옆으로 넘기기, 다음 사진이 살짝 보이게 */
+.galleryWrap {
+  margin: 0 0 4px;
+}
+
+.gallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 25px;
+  padding: 0 25px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery img {
+  flex: 0 0 78%;
+  width: 78%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 12px;
+  scroll-snap-align: start;
+}
+
+.gallery[data-single="true"] {
+  justify-content: center;
+}
+
+.galleryDots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.galleryDots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--muted);
+  cursor: pointer;
+}
+
+.galleryDots button[aria-current="true"] {
+  background: var(--dark);
+}
+
+/* 사이즈표 */
+.chart {
+  margin: 28px 25px 0;
+}
+
+.chartTitle {
+  margin: 0 0 12px;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.chartScroll {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--bg);
+}
+
+.chartScroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--dark);
+  white-space: nowrap;
+}
+
+.chartScroll th,
+.chartScroll td {
+  padding: 9px 5px;
+  text-align: center;
+  border-bottom: 1px solid var(--bg);
+}
+
+.chartScroll thead th {
+  background: var(--bg);
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 12px;
+  border-bottom: 0;
+  /* 항목 이름이 길면 두 줄로 (표가 화면 안에 들어오게) */
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  font-size: 11.5px;
+  vertical-align: middle;
+}
+
+.chartScroll tbody th {
+  font-family: var(--font-title);
+  font-weight: 700;
+  position: sticky;
+  left: 0;
+  background: #fff;
+}
+
+.chartScroll thead th:first-child {
+  position: sticky;
+  left: 0;
+}
+
+.chartScroll tbody tr:last-child th,
+.chartScroll tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.chartScroll tbody tr[aria-selected="true"] th,
+.chartScroll tbody tr[aria-selected="true"] td {
+  background: #eef3eb;
+}
+
+.chartUnit {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  opacity: 0.8;
+  word-break: keep-all;
+}
+
 .sizeTitle {
   margin: 28px 0 15px;
   font-size: 20px;
@@ -322,13 +466,16 @@
 
 .sizes {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 8px 6px;
   padding: 0 25px;
 }
 
+/* 사이즈가 많으면(예: XS~3XL) 두 줄로 */
 .size {
-  width: 92px;
+  flex: 0 0 calc((100% - 18px) / 4);
+  max-width: 92px;
   height: 37px;
   border: 0;
   border-radius: 60px;

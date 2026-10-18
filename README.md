@@ -87,9 +87,9 @@
 | `public/images/hero-1~3.jpg` | 홈 메인 사진 (자동으로 넘어가요) | 가로 1080 |
 | `public/images/program.jpg` | TOUR PROGRAM 드레스 사진 | 690×501 |
 | `public/images/coupons.png` | TOUR PROGRAM 쿠폰 모음 | 528×344 |
-| `public/images/collection/1~7.jpg` | DRESS COLLECTION 사진 | 420×529 |
+| `public/images/collection/1~6.jpg` | DRESS COLLECTION 사진 (드레스 선택 화면 순서) | 가로 420 |
 | `public/images/partners/1~3.jpg` | 제휴사 사진 (비빔파스타클럽·북카페파오·대현동 프로젝트 순) | 300×300 |
-| `public/images/dresses/*.jpg` | 드레스 선택 사진 (파일 이름 = 드레스 id) | 가로 720 |
+| `public/images/dresses/{id}-1.jpg, -2.jpg …` | 드레스 사진. `-1`은 드레스 선택 표지, 상세 화면에서는 전부 넘겨볼 수 있어요. 사진 개수·사이즈표는 `src/lib/dressMedia.ts` | 가로 900 |
 | `public/images/pay/*.png` | 결제수단 로고 (토스·카카오페이·PayPal) | 가로형 |
 
 ## 운영 설정 (환경변수)

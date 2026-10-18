@@ -9,6 +9,7 @@ import { dressName, fmt, money } from "@/i18n/format";
 import { useReservation } from "../useReservation";
 import styles from "../reserve.module.css";
 import type { Dress } from "@/lib/dresses";
+import { DRESS_MEDIA } from "@/lib/dressMedia";
 
 // 02_예약_드레스선택
 export default function DressListPage() {
@@ -48,13 +49,12 @@ export default function DressListPage() {
                   aria-disabled={!anyLeft}
                   tabIndex={anyLeft ? undefined : -1}
                 >
-                  <img src={d.image} alt={name} loading="lazy" />
+                  <img src={DRESS_MEDIA[d.id]?.gallery[0] ?? d.image} alt={name} loading="lazy" />
                   {!anyLeft && <span className={styles.soldOut}>{t.dress.soldOut}</span>}
                   <div className={styles.dressInfo}>
                     <p className="title">{name}</p>
                     <div className={styles.dressMeta}>
                       <span>{fmt(t.dress.fee, { price: money(d.price, locale) })}</span>
-                      <span>{fmt(t.dress.sizes, { sizes: d.sizes.map((s) => s.size).join(" / ") })}</span>
                     </div>
                   </div>
                 </Link>
