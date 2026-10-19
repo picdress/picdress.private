@@ -37,7 +37,7 @@ const en: Messages = {
     ],
   },
   footer: {
-    address: "Address: 2F, 60-11 Daehyeon-dong, Seodaemun-gu, Seoul",
+    address: "Address: Unit 60, 2F, Sinchon Youth Food Store, 22-5 Sinchonyeok-ro, Seodaemun-gu, Seoul",
     openDays: "Open: Nov 2 (Mon) – Nov 13 (Fri), 2026",
     hours: "Hours: 10:00 – 18:00",
     terms: "Terms",

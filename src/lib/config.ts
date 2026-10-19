@@ -102,7 +102,7 @@ export const config = {
     owner: env.BUSINESS_OWNER ?? "",
     regNo: env.BUSINESS_REG_NO ?? "",
     mailOrderNo: env.BUSINESS_MAIL_ORDER_NO ?? "",
-    address: env.BUSINESS_ADDRESS ?? "서울 서대문구 대현동 60-11 2층",
+    address: env.BUSINESS_ADDRESS ?? "서울특별시 서대문구 신촌역로 22-5 신촌 청년푸드스토어 2층 60호",
     phone: env.BUSINESS_PHONE ?? "010-9618-0879",
     email: env.BUSINESS_EMAIL ?? "picdress012@gmail.com",
   },
