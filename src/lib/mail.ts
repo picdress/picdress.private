@@ -68,7 +68,7 @@ export async function sendTestMail(to: string) {
   return send(
     to,
     "[pic.dress] 테스트 메일",
-    layout("테스트 메일이에요", `<p style="font-size:14px;line-height:1.7">이 메일이 보이면 예약 확정·취소 메일도 잘 나가요.</p>`),
+    layout("테스트 메일입니다", `<p style="font-size:14px;line-height:1.7">이 메일이 보이면 예약 확정·취소 메일도 정상적으로 발송됩니다.</p>`),
   );
 }
 
@@ -173,7 +173,7 @@ export async function mailDepositRequest(b: BookingView) {
     const err = await send(
       b.email,
       t.onsiteSubject,
-      layout(tb.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(tb.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${button(manageUrl(b), t.view)}`),
+      layout(t.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(t.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${button(manageUrl(b), t.view)}`),
     );
     await notifyAdmin(`현장 결제 예약: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
     return err;
@@ -189,11 +189,11 @@ export async function mailDepositRequest(b: BookingView) {
     b.email,
     t.paySubject,
     layout(
-      tb.payTitle,
+      t.payTitle,
       `${details(b, extra)}
-      <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(tb.payWith, { method: label, methodRo: withRo(label), amount })}</b></p>
+      <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(t.payWith, { method: label, methodRo: withRo(label), amount })}</b></p>
       ${/^https?:/.test(link) ? button(link, fmt(tb.openLink, { method: label, methodRo: withRo(label) })) : ""}
-      <p style="font-size:13px;line-height:1.7">${fmt(showsAccount ? tb.bankNote : tb.memoNote, { name: esc(b.customerName) })}<br/>${tb.checkNote}</p>
+      <p style="font-size:13px;line-height:1.7">${fmt(showsAccount ? t.bankNote : t.memoNote, { name: esc(b.customerName) })}<br/>${t.checkNote}</p>
       ${button(manageUrl(b), t.view)}`,
     ),
   );

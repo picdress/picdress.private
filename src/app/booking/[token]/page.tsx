@@ -111,6 +111,7 @@ export default async function BookingPage({
                   {b.paymentMode === "manual" ? (b.refundDoneAt ? tb.refundManualDone : tb.refundManualPending) : tb.refundOnline}
                 </p>
               )}
+              {b.refundAmount > 0 && !b.refundDoneAt && <p className={styles.spamHint}>{tb.cancelProcessing}</p>}
             </>
           )}
           {(b.status === "expired" || b.status === "holding") && (

@@ -69,3 +69,12 @@ begin
     insert into app_migrations (id) values ('2026-10-19-dresses-v3');
   end if;
 end $$;
+
+-- 2026-10-19: 오픈 전 테스트 예약 전부 삭제 (사장님 요청). 이 변경이 배포될 때 한 번만 실행돼요
+do $$
+begin
+  if not exists (select 1 from app_migrations where id = '2026-10-19-clear-test-bookings') then
+    delete from bookings;  -- booking_events는 함께 지워져요 (on delete cascade)
+    insert into app_migrations (id) values ('2026-10-19-clear-test-bookings');
+  end if;
+end $$;

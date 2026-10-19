@@ -122,19 +122,19 @@ const TEXT = {
 
 const MANUAL_TEXT = {
   ko: {
-    refund2: "결제하신 방법(토스·카카오페이 송금, PayPal, 계좌이체)으로 운영자가 직접 돌려드리며, 확인 후 영업일 기준 3일 이내에 처리합니다.",
+    refund2: "결제하신 방법(토스·카카오페이 송금, PayPal, 계좌이체)으로 운영자가 직접 돌려드리며, 취소 신청일로부터 최대 2~3일 이내에 처리합니다.",
     refund3: "PayPal로 결제한 경우 PayPal 환불로 처리되며, 환율·PayPal 정책에 따라 실제 환불액이 달라질 수 있습니다.",
     processors: "토스·카카오페이(송금 수취), PayPal(해외 결제 수취), Google(예약 안내 메일 발송), 호스팅·DB 업체(서비스 운영)",
     abroad: "PayPal로 결제하는 경우 결제 정보가 PayPal(해외)에서 처리됩니다.",
   },
   en: {
-    refund2: "Refunds are sent back by the Operator the same way you paid (Toss/KakaoPay transfer, PayPal or bank transfer), within 3 business days of confirmation.",
+    refund2: "Refunds are sent back by the Operator the same way you paid (Toss/KakaoPay transfer, PayPal or bank transfer), within up to 2–3 days of your cancellation.",
     refund3: "PayPal payments are refunded through PayPal; the final amount may differ due to exchange rates and PayPal's policies.",
     processors: "Toss and KakaoPay (receiving transfers), PayPal (international payments), Google (email), hosting and database providers (service operation)",
     abroad: "If you pay with PayPal, your payment information is processed by PayPal outside Korea.",
   },
   zh: {
-    refund2: "退款将由运营方按您的付款方式（Toss/KakaoPay 转账、PayPal 或银行转账）原路退回，确认后3个工作日内处理。",
+    refund2: "退款将由运营方按您的付款方式（Toss/KakaoPay 转账、PayPal 或银行转账）原路退回，自取消申请之日起最多2~3天内处理。",
     refund3: "通过 PayPal 付款的订单将经 PayPal 退款，实际退款金额可能因汇率及 PayPal 政策而不同。",
     processors: "Toss、KakaoPay（收款），PayPal（国际支付收款），Google（邮件发送），主机及数据库服务商（服务运营）",
     abroad: "使用 PayPal 付款时，支付信息将由境外的 PayPal 处理。",
