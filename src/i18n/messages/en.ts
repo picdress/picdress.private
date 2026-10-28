@@ -34,6 +34,10 @@ const en: Messages = {
       { name: "Bibim Pasta Club", desc: "A tasty, fun, healthy and hearty bibim-pasta restaurant" },
       { name: "Book Café PAO", desc: "A calm, cozy book café with pudding,\ncoffee, drinks and pasta" },
       { name: "Daehyeon-dong Project", desc: "Sandwiches and great coffee —\na café where anyone can feel at home" },
+      {
+        name: "MIZY (미지)",
+        desc: "An Australian-style café tucked away in a small alley.\nTry MIZY's own toasts, full of colorful ingredients and well-balanced flavors, with an Australian-style white coffee.",
+      },
     ],
   },
   footer: {

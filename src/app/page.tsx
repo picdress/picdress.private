@@ -13,7 +13,7 @@ import HeroSlider from "@/components/HeroSlider";
 const HERO_IMAGES = ["/images/hero-1.jpg", "/images/hero-2.jpg", "/images/hero-3.jpg"];
 const COLLECTION = [1, 2, 3, 4, 5, 6].map((n) => `/images/collection/${n}.jpg`);
 const PHOTOS = [1, 2, 3, 4, 5, 6].map((n) => `/images/photos/${n}.jpg`);
-const PARTNER_IMAGES = ["/images/partners/1.jpg", "/images/partners/2.jpg", "/images/partners/3.jpg"];
+const PARTNER_IMAGES = [1, 2, 3, 4].map((n) => `/images/partners/${n}.jpg`);
 
 export default async function Home() {
   const { t, locale } = await getI18n();
