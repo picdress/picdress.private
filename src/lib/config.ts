@@ -1,6 +1,14 @@
 // 운영 설정. 대부분 환경변수로 바꿀 수 있고, 기본값은 피그마 기준이에요.
 // (영업일 11/2~11/13, 11:00~18:00 30분 간격, 타임당 4명, 2시간 대여)
 
+/** 계좌 문구에 은행 이름이 없으면 앞에 붙여요 ("1000-1234-5678 (예금주 …)" → "토스뱅크 1000-1234-5678 (예금주 …)") */
+function withBankName(raw: string, bank: string) {
+  const t = raw.trim();
+  if (!t || !bank.trim()) return t;
+  const hasBank = /은행|뱅크|금고|우체국|신협|수협|농협|bank/i.test(t) || /^(국민|신한|우리|하나|기업|카카오|토스|케이|kb|nh|ibk|sc)/i.test(t);
+  return hasBank ? t : `${bank.trim()} ${t}`;
+}
+
 function int(v: string | undefined, fallback: number) {
   const n = Number.parseInt(v ?? "", 10);
   return Number.isFinite(n) ? n : fallback;
@@ -76,8 +84,8 @@ export const config = {
   kakaoSendLink: env.KAKAOPAY_SEND_LINK ?? "",
   /** PayPal.Me 링크 (예: https://paypal.me/picdress) — 달러 금액이 자동으로 붙어요 */
   paypalLink: env.PAYPAL_LINK ?? "",
-  /** 계좌이체 (예: 국민은행 000-000 (예금주 홍길동)) */
-  bankAccount: env.BANK_ACCOUNT ?? "",
+  /** 계좌이체 (예: 국민은행 000-000 (예금주 홍길동)) — 은행 이름이 없으면 BANK_NAME(기본 토스뱅크)을 앞에 붙여요 */
+  bankAccount: withBankName(env.BANK_ACCOUNT ?? "", env.BANK_NAME ?? "토스뱅크"),
   /** 1이면 '현장 결제(현금)' 선택지 표시 */
   onsitePayment: env.ONSITE_PAYMENT === "1",
   /** 드레스에 달러 가격이 없을 때 PayPal 금액 계산용 환율 (1달러 = 몇 원) */
