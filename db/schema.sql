@@ -88,3 +88,7 @@ alter table dresses  add column if not exists name_en text;
 alter table dresses  add column if not exists name_zh text;
 alter table bookings add column if not exists locale text not null default 'ko';
 alter table bookings add column if not exists payment_channel text;   -- kr | global
+
+-- ── 이화여대 학생 할인 (2026-10-28) ──
+alter table bookings add column if not exists ewha_student boolean not null default false;
+alter table bookings add column if not exists list_price integer;   -- 예약 당시 정가 (학생증 미지참 시 차액 계산용)

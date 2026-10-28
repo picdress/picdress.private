@@ -14,6 +14,8 @@ export type Reservation = {
   dressId?: string;
   size?: string;
   orderId?: string;
+  /** 이화여대 학생 할인 선택 */
+  ewha?: boolean;
 };
 
 const KEY = "pd_reservation";

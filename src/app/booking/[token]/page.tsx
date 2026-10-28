@@ -153,11 +153,19 @@ export default async function BookingPage({
             <dd>
               {b.currency === "USD" && b.amountUsd ? usd(b.amountUsd) : money(b.amount, locale)}
               {methodLabel ? ` · ${methodLabel}` : ""}
+              {b.ewhaStudent ? ` · ${t.ewha.applied}` : ""}
             </dd>
             <dt>{tb.orderId}</dt>
             <dd className={styles.mono}>{b.orderId}</dd>
           </dl>
         </section>
+
+        {b.ewhaStudent && (b.status === "paid" || b.status === "awaiting_deposit") && (
+          <section className={styles.notice}>
+            <p className="title">{t.ewha.bookingTitle}</p>
+            <p>{fmt(t.ewha.bookingNote, { gap: money(b.ewhaGap, locale) })}</p>
+          </section>
+        )}
 
         {b.status === "paid" && (
           <section className={styles.notice}>

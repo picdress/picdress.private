@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import { config, type RefundRule } from "@/lib/config";
-import type { Locale } from "@/i18n";
+import { fmt, money, type Locale } from "@/i18n";
 import { getI18n } from "@/i18n/server";
 import styles from "./policy.module.css";
 
@@ -142,7 +142,7 @@ const MANUAL_TEXT = {
 };
 
 export default async function PolicyPage() {
-  const { locale } = await getI18n();
+  const { t, locale } = await getI18n();
   const base = TEXT[locale];
   const manual = config.paymentMode === "manual";
   const m = MANUAL_TEXT[locale];
@@ -166,7 +166,10 @@ export default async function PolicyPage() {
         <section id="terms">
           <h1 className="title">{x.terms}</h1>
           <ol>
-            {x.termsItems(operator).map((l) => (
+            {[
+              ...x.termsItems(operator),
+              ...(config.ewhaStudentPrice > 0 ? [fmt(t.ewha.policy, { price: money(config.ewhaStudentPrice, locale) })] : []),
+            ].map((l) => (
               <li key={l}>{l}</li>
             ))}
           </ol>

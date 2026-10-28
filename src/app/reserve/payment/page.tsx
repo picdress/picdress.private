@@ -18,6 +18,8 @@ type Hold = {
   dressId: string;
   amount: number;
   amountUsd: string | null;
+  ewhaStudent: boolean;
+  listPrice: number;
   holdExpiresAt: string;
   customer: { name: string; phone: string; email: string };
   payment: {
@@ -121,6 +123,7 @@ export default function PaymentPage() {
           time: r.time,
           dressId: r.dressId,
           size: r.size,
+          ewha: r.ewha === true,
         }),
       });
       const data = await res.json();
@@ -308,6 +311,7 @@ export default function PaymentPage() {
   }
 
   const priceText = hold ? money(hold.amount, locale) : "…";
+  const ewhaGap = hold?.ewhaStudent ? Math.max(0, hold.listPrice - hold.amount) : 0;
 
   return (
     <>
@@ -333,8 +337,16 @@ export default function PaymentPage() {
           <hr className={styles.line} />
           <div className={`title ${styles.price}`}>
             <span>{t.payment.price}</span>
-            <span>{priceText}</span>
+            <span>
+              {ewhaGap > 0 && hold && <s className={styles.listPrice}>{money(hold.listPrice, locale)}</s>}
+              {priceText}
+            </span>
           </div>
+          {ewhaGap > 0 && (
+            <p className={styles.ewhaNote}>
+              <b>{t.ewha.applied}</b> · {fmt(t.ewha.payNote, { gap: money(ewhaGap, locale) })}
+            </p>
+          )}
         </section>
 
         <section className={styles.methods}>

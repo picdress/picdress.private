@@ -60,6 +60,18 @@ const en: Messages = {
     errEmail: "Please enter an email address for your confirmation.",
     errAgree: "Please agree to the collection and use of personal information.",
   },
+  ewha: {
+    label: "I'm an Ewha Womans University student",
+    desc: "All dresses {price}",
+    idNote: "We'll check your student ID (a mobile ID is fine) on the day. Without it, the difference from the regular price is paid on site.",
+    applied: "Ewha student price",
+    payNote: "Ewha student price. Please show your student ID on the day (otherwise the {gap} difference is paid on site).",
+    bookingTitle: "Ewha student booking",
+    bookingNote: "Please show your student ID (a mobile ID is fine) on the day. If we can't check it, the {gap} difference from the regular price is paid on site.",
+    bannerTitle: "Ewha students: every dress {price}",
+    bannerBody: "Tick “I'm an Ewha student” when booking and just show your student ID on the day.",
+    policy: "The Ewha student price (every dress {price}) is checked with your student ID (a mobile ID is fine) on the day; if it cannot be checked, the difference from the regular price is collected on site.",
+  },
   schedule: {
     dateTitle: "Select a date",
     timeTitle: "Select a time",
@@ -248,6 +260,8 @@ const en: Messages = {
     NETWORK: "A network problem occurred. Please try again.",
   },
   mail: {
+    ewhaTag: "Ewha student price",
+    ewhaNote: "This booking is at the Ewha student price. Please show your student ID (a mobile ID is fine) on the day. If we cannot check it, the {gap} difference from the regular price will be collected on site.",
     confirmedSubject: "[pic.dress] Your booking is confirmed ({date} {time})",
     confirmedTitle: "Your booking is confirmed",
     confirmedBody: "Please arrive at the shop ({address}) 10 minutes before your time.<br/>You'll receive 3 partner restaurant/café coupons on site.",

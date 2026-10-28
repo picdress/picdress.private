@@ -128,10 +128,19 @@ function details(b: BookingView, extra = "") {
     ${row(t.rowCustomer, `${esc(b.customerName)} (${esc(b.phone)})`)}
     ${row(t.rowSchedule, `${longDate(b.slotDate, b.locale)} ${b.slotTime}`)}
     ${row(t.rowDress, `${esc(dressName({ name: b.dressName, nameEn: b.dressNameEn, nameZh: b.dressNameZh }, b.locale))} · ${esc(b.dressSize)}`)}
-    ${row(t.rowAmount, amountText(b))}
+    ${row(t.rowAmount, amountText(b) + (b.ewhaStudent ? ` <span style="opacity:.7">(${t.ewhaTag})</span>` : ""))}
     ${row(t.rowOrder, b.orderId)}
     ${extra}
   </table>`;
+}
+
+/** 이대생 할인 예약: 학생증 지참 안내 상자 */
+function ewhaBox(b: BookingView) {
+  if (!b.ewhaStudent) return "";
+  const t = getMessages(b.locale).mail;
+  return `<div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#fff;border:1.5px solid ${C.green}">
+    <p style="margin:0;font-size:13px;line-height:1.7"><b>[${t.ewhaTag}]</b> ${fmt(t.ewhaNote, { gap: money(b.ewhaGap, b.locale) })}</p>
+  </div>`;
 }
 
 function button(href: string, label: string) {
@@ -151,6 +160,7 @@ export async function mailConfirmed(b: BookingView) {
       t.confirmedTitle,
       `${details(b)}
       <p style="font-size:13px;line-height:1.7;margin-top:16px">${fmt(t.confirmedBody, { address: esc(config.business.address) })}</p>
+      ${ewhaBox(b)}
       <div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#fff">
         <p style="margin:0 0 6px;font-size:14px;font-weight:700">[${t.noticeTitle}]</p>
         <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.7">${t.notices.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>
@@ -158,7 +168,7 @@ export async function mailConfirmed(b: BookingView) {
       ${button(manageUrl(b), t.manage)}`,
     ),
   );
-  await notifyAdmin(`새 예약 확정: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${MANUAL_ADMIN[b.paymentMethod ?? ""] ?? b.paymentMethod ?? ""})`, b);
+  await notifyAdmin(`새 예약 확정${b.ewhaStudent ? " (🎓 이대생 할인)" : ""}: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} (${MANUAL_ADMIN[b.paymentMethod ?? ""] ?? b.paymentMethod ?? ""})`, b);
   return err;
 }
 
@@ -173,7 +183,7 @@ export async function mailDepositRequest(b: BookingView) {
     const err = await send(
       b.email,
       t.onsiteSubject,
-      layout(t.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(t.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${button(manageUrl(b), t.view)}`),
+      layout(t.onsiteTitle, `${details(b)}<p style="font-size:14px;line-height:1.7;margin-top:16px">${fmt(t.onsiteBody, { amount: money(b.amount, b.locale) })}</p>${ewhaBox(b)}${button(manageUrl(b), t.view)}`),
     );
     await notifyAdmin(`현장 결제 예약: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime}`, b);
     return err;
@@ -194,10 +204,11 @@ export async function mailDepositRequest(b: BookingView) {
       <p style="font-size:14px;line-height:1.7;margin-top:16px"><b>${fmt(t.payWith, { method: label, methodRo: withRo(label), amount })}</b></p>
       ${/^https?:/.test(link) ? button(link, fmt(tb.openLink, { method: label, methodRo: withRo(label) })) : ""}
       <p style="font-size:13px;line-height:1.7">${fmt(showsAccount ? t.bankNote : t.memoNote, { name: esc(b.customerName) })}<br/>${t.checkNote}</p>
+      ${ewhaBox(b)}
       ${button(manageUrl(b), t.view)}`,
     ),
   );
-  await notifyAdmin(`결제 대기 (${MANUAL_ADMIN[pm] ?? pm}): ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} — ${amount}`, b);
+  await notifyAdmin(`결제 대기 (${MANUAL_ADMIN[pm] ?? pm})${b.ewhaStudent ? " 🎓 이대생 할인" : ""}: ${b.customerName} ${longDate(b.slotDate, "ko")} ${b.slotTime} — ${amount}`, b);
   return err;
 }
 

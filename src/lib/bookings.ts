@@ -56,6 +56,8 @@ type Row = {
   refund_done_at: Date | null;
   admin_memo: string | null;
   locale: string;
+  ewha_student: boolean;
+  list_price: number | null;
   created_at: Date;
 };
 
@@ -102,6 +104,12 @@ function toView(r: Row) {
     refundDoneAt: r.refund_done_at?.toISOString() ?? null,
     adminMemo: r.admin_memo,
     locale: (isLocale(r.locale) ? r.locale : "ko") as Locale,
+    /** 이화여대 학생 할인으로 예약 → 방문 당일 학생증 확인 */
+    ewhaStudent: r.ewha_student,
+    /** 예약 당시 정가 (할인 예약이면 amount보다 큼) */
+    listPrice: r.list_price ?? r.amount,
+    /** 학생증을 확인 못 하면 현장에서 받을 차액 */
+    ewhaGap: r.ewha_student ? Math.max(0, (r.list_price ?? r.amount) - r.amount) : 0,
     createdAt: r.created_at.toISOString(),
   };
 }
@@ -155,6 +163,8 @@ export type HoldInput = {
   dressId: string;
   size: string;
   locale?: string;
+  /** 이화여대 학생 할인 선택 */
+  ewha?: boolean;
 };
 
 /** 한국 번호는 숫자만(01012345678), 해외 번호는 +국가번호(+8613800000000) */
@@ -199,6 +209,12 @@ export async function createHold(input: HoldInput, clientIp: string) {
     if (!dress || !dress.active) throw new BookingError("INVALID_DRESS", "선택한 드레스를 찾을 수 없어요.");
     if (dress.price <= 0) throw new BookingError("NO_PRICE", "드레스 가격이 아직 설정되지 않았어요.");
 
+    // 이화여대 학생 할인: 정가가 할인가보다 비싼 드레스만 할인가로 (금액은 항상 서버에서 계산)
+    const studentPrice = config.ewhaStudentPrice;
+    const ewha = Boolean(input.ewha) && studentPrice > 0 && dress.price > studentPrice;
+    const amount = ewha ? studentPrice : dress.price;
+    const amountUsd = ewha ? null : dress.price_usd; // 할인가는 환율로 달러 계산
+
     // 같은 번호로 잡아둔 이전 자리는 풀어줌 (뒤로 가서 다시 고르는 경우)
     await tx`update bookings set status = 'expired' where phone = ${c.phone} and status = 'holding'`;
 
@@ -218,14 +234,15 @@ export async function createHold(input: HoldInput, clientIp: string) {
       insert into bookings (
         order_id, manage_token, customer_name, phone, email,
         slot_date, slot_time, dress_id, dress_size, amount, amount_usd,
-        status, payment_mode, hold_expires_at, client_ip, locale
+        status, payment_mode, hold_expires_at, client_ip, locale, ewha_student, list_price
       ) values (
         ${orderId}, ${token(24)}, ${c.name}, ${c.phone}, ${c.email},
-        ${input.date}, ${input.time}, ${input.dressId}, ${input.size}, ${dress.price}, ${dress.price_usd},
-        'holding', ${mode}, now() + ${`${config.holdMinutes} minutes`}::interval, ${clientIp}, ${locale}
+        ${input.date}, ${input.time}, ${input.dressId}, ${input.size}, ${amount}, ${amountUsd},
+        'holding', ${mode}, now() + ${`${config.holdMinutes} minutes`}::interval, ${clientIp}, ${locale},
+        ${ewha}, ${dress.price}
       ) returning id
     `;
-    await logEvent(tx, row.id, "hold_created", { ip: clientIp, locale });
+    await logEvent(tx, row.id, "hold_created", { ip: clientIp, locale, ewha });
     return row.id;
   });
 

@@ -516,3 +516,65 @@
   font-size: 12px;
   opacity: 0.8;
 }
+
+/* ───── 이화여대 학생 할인 ───── */
+
+.ewha {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 18px 25px 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1.5px solid var(--green);
+  background: var(--light);
+  cursor: pointer;
+}
+
+.ewhaInList {
+  margin: 0 42px 20px;
+}
+
+.ewha[data-on="true"] {
+  border-color: var(--dark);
+  background: #fff;
+}
+
+.ewha input {
+  margin: 2px 0 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--dark);
+  flex-shrink: 0;
+}
+
+.ewha > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ewhaLabel {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--dark);
+}
+
+.ewhaPrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.ewhaNote {
+  font-size: 11.5px;
+  line-height: 1.55;
+  opacity: 0.8;
+}
+
+.listPrice {
+  opacity: 0.5;
+  margin-right: 6px;
+  font-weight: 400;
+}

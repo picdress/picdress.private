@@ -25,6 +25,7 @@ export async function POST(req: Request) {
         time: String(body.time ?? ""),
         dressId: String(body.dressId ?? ""),
         size: String(body.size ?? ""),
+        ewha: body.ewha === true,
         locale: await getLocale(),
       },
       clientIp(req),
@@ -36,6 +37,8 @@ export async function POST(req: Request) {
       dressId: b.dressId,
       amount: b.amount,
       amountUsd: b.amountUsd,
+      ewhaStudent: b.ewhaStudent,
+      listPrice: b.listPrice,
       holdExpiresAt: b.holdExpiresAt,
       customer: { name: b.customerName, phone: b.phone, email: b.email },
       payment: {

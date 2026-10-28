@@ -41,11 +41,19 @@ function BookingCard({ b, back }: { b: BookingView; back: string }) {
         <b>{b.customerName}</b>
         <a href={`tel:${b.phone}`}>{phoneFmt(b.phone)}</a>
         {LANG_BADGE[b.locale] && <span className={styles.badge}>{LANG_BADGE[b.locale]}</span>}
+        {b.ewhaStudent && (
+          <span className={styles.badge} data-tone="ewha">
+            🎓 이대생 할인 · 학생증 확인
+          </span>
+        )}
       </header>
       <p>
         {b.dressName} · <b>{b.dressSize}</b> · {b.currency === "USD" && b.amountUsd ? `$${b.amountUsd}` : won(b.amount)}
         {b.paymentMethod ? ` · ${MANUAL_LABEL[b.paymentMethod] ?? b.paymentMethod}` : ""}
       </p>
+      {b.ewhaStudent && b.ewhaGap > 0 && (
+        <p className={styles.sub}>정가 {won(b.listPrice)} → 이대생가 {won(b.amount)} · 학생증이 없으면 차액 {won(b.ewhaGap)}을 현장에서 받아요</p>
+      )}
       <p className={styles.sub}>
         {b.email} · {b.orderId}
         {b.paidAt && ` · 결제 ${formatKst(b.paidAt)}`}

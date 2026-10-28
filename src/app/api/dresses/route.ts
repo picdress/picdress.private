@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { listDresses } from "@/lib/dresses";
 import { errorJson } from "@/lib/http";
+import { config } from "@/lib/config";
 import { isValidDate, isValidTime } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
     const time = sp.get("time") ?? undefined;
     const ok = date && time && isValidDate(date) && isValidTime(time);
     const dresses = await listDresses(ok ? { date, time } : {});
-    return NextResponse.json({ dresses }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ dresses, ewhaPrice: config.ewhaStudentPrice }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     return errorJson(e);
   }

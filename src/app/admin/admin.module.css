@@ -299,6 +299,11 @@
   background: #f3d48b;
 }
 
+.badge[data-tone="ewha"] {
+  background: #dfe8f7;
+  color: #2c4a7a;
+}
+
 .badge[data-tone="bad"] {
   background: #f1d1ca;
   color: var(--danger);

@@ -61,6 +61,18 @@
   line-height: 22px;
 }
 
+.listPrice {
+  opacity: 0.45;
+  margin-right: 8px;
+  font-size: 15px;
+}
+
+.ewhaNote {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 /* 결제 수단 블록: 위 블록과 2px 간격 */
 .methods {
   margin-top: 2px;

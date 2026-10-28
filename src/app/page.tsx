@@ -4,7 +4,8 @@ import Chevron from "@/components/Chevron";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
-import { fmt } from "@/i18n";
+import { fmt, money } from "@/i18n";
+import { config } from "@/lib/config";
 import { getI18n } from "@/i18n/server";
 import styles from "./home.module.css";
 import HeroSlider from "@/components/HeroSlider";
@@ -15,7 +16,8 @@ const PHOTOS = [1, 2, 3, 4, 5, 6].map((n) => `/images/photos/${n}.jpg`);
 const PARTNER_IMAGES = ["/images/partners/1.jpg", "/images/partners/2.jpg", "/images/partners/3.jpg"];
 
 export default async function Home() {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
+  const ewhaPrice = config.ewhaStudentPrice;
   return (
     <>
       <Header />
@@ -23,6 +25,12 @@ export default async function Home() {
         <div className={styles.hero}>
           <HeroSlider images={HERO_IMAGES} alt={t.home.heroAlt} label={t.home.heroAlt} />
         </div>
+        {ewhaPrice > 0 && (
+          <Link href="/reserve" className={styles.ewhaBanner}>
+            <span className={`title ${styles.ewhaBannerTitle}`}>{fmt(t.ewha.bannerTitle, { price: money(ewhaPrice, locale) })}</span>
+            <span className={styles.ewhaBannerBody}>{t.ewha.bannerBody}</span>
+          </Link>
+        )}
         <a href="#about" className={styles.scrollHint} aria-label={t.home.scrollDown}>
           <Chevron width={40} height={18} strokeWidth={1.8} />
         </a>

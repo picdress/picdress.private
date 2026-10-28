@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import btn from "@/components/Button.module.css";
 import { useI18n } from "@/i18n/client";
-import { dressName, fmt, money } from "@/i18n/format";
+import { dressName, fmt } from "@/i18n/format";
 import { useReservation } from "../../useReservation";
 import styles from "../../reserve.module.css";
 import type { Dress } from "@/lib/dresses";
 import { DRESS_MEDIA } from "@/lib/dressMedia";
 import DressGallery from "./DressGallery";
+import { EwhaPrice } from "../../EwhaToggle";
 
 // 02_예약_드레스사이즈선택
 export default function DressDetailPage() {
@@ -21,6 +22,7 @@ export default function DressDetailPage() {
   const [dress, setDress] = useState<Dress | null>(null);
   const [size, setSize] = useState<string>();
   const [error, setError] = useState("");
+  const [ewhaPrice, setEwhaPrice] = useState(0);
 
   useEffect(() => {
     if (!ready) return;
@@ -32,6 +34,7 @@ export default function DressDetailPage() {
         const found = (d.dresses as Dress[]).find((x) => x.id === id);
         if (!found) return router.replace("/reserve/dress");
         setDress(found);
+        setEwhaPrice(Number(d.ewhaPrice) || 0);
         if (r.dressId === id && found.sizes.some((s) => s.size === r.size && (s.remaining ?? 0) > 0)) setSize(r.size);
       })
       .catch(() => setError(t.dress.loadError));
@@ -56,7 +59,9 @@ export default function DressDetailPage() {
         ) : (
           <>
             <h1 className={`title ${styles.detailName}`}>{dressName(dress, locale)}</h1>
-            <p className={styles.detailPrice}>{money(dress.price, locale)}</p>
+            <p className={styles.detailPrice}>
+              <EwhaPrice price={dress.price} ewhaPrice={ewhaPrice} on={Boolean(r.ewha)} />
+            </p>
             <DressGallery
               photos={media?.gallery ?? [dress.image]}
               alt={dressName(dress, locale)}

@@ -83,6 +83,9 @@ export const config = {
   /** 드레스에 달러 가격이 없을 때 PayPal 금액 계산용 환율 (1달러 = 몇 원) */
   krwPerUsd: int(env.KRW_PER_USD, 1400),
 
+  /** 이화여대 학생 할인가 (원). 모든 드레스를 이 가격으로 — 0으로 두면 할인 끔 */
+  ewhaStudentPrice: int(env.EWHA_STUDENT_PRICE, 10000),
+
   // 환불 규정 "남은일수:환불%" (이용일 기준). 기본: 3일 전 100%, 1일 전 50%, 당일 0%
   refundRules: parseRefundRules(env.REFUND_RULES ?? "3:100,1:50,0:0"),
 

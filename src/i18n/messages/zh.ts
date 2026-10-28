@@ -59,6 +59,18 @@ const zh: Messages = {
     errEmail: "请输入用于接收预约确认的电子邮箱。",
     errAgree: "请同意个人信息的收集与使用。",
   },
+  ewha: {
+    label: "我是梨花女子大学学生",
+    desc: "所有礼服 {price}",
+    idNote: "到店当天需出示学生证（电子学生证也可以）。如无法出示，需在现场补交与原价的差额。",
+    applied: "梨大学生价",
+    payNote: "梨花女子大学学生优惠价。到店当天请务必出示学生证（未出示需现场补交差额 {gap}）。",
+    bookingTitle: "梨大学生优惠预约",
+    bookingNote: "到店当天请务必出示学生证（电子学生证也可以）。如无法出示，需在现场补交与原价的差额 {gap}。",
+    bannerTitle: "梨大学生 所有礼服 {price}",
+    bannerBody: "预约时勾选“我是梨花女子大学学生”，当天出示学生证即可。",
+    policy: "梨花女子大学学生优惠（所有礼服 {price}）将于到店当天凭学生证（电子学生证也可以）确认；如无法确认，将在现场收取与原价的差额。",
+  },
   schedule: {
     dateTitle: "选择日期",
     timeTitle: "选择时间",
@@ -247,6 +259,8 @@ const zh: Messages = {
     NETWORK: "网络异常，请重试。",
   },
   mail: {
+    ewhaTag: "梨花女子大学学生优惠",
+    ewhaNote: "本次预约为梨花女子大学学生优惠价。到店当天请务必出示学生证（电子学生证也可以）。如无法出示，将在现场收取与原价的差额 {gap}。",
     confirmedSubject: "[pic.dress] 预约成功（{date} {time}）",
     confirmedTitle: "预约成功",
     confirmedBody: "请于预约时间前10分钟到达店铺（{address}）。<br/>3张合作餐厅/咖啡馆优惠券将在店内发放。",
